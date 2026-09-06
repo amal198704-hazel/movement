@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Panchayat · Field Register</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f7fb;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 16px 14px 90px;
+            color: #0b1a2a;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 6px 4px;
+        }
+
+        .header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            background: linear-gradient(145deg, #0b2a3b, #1b3f54);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-icon {
+            background: #ffffffcc;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1f3a4b;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .btn-icon:active {
+            transform: scale(0.96);
+            background: #eef2f6;
+        }
+
+        .btn-primary {
+            background: #1f3a4b;
+            border: none;
+            color: white;
+            box-shadow: 0 8px 18px rgba(26, 67, 113, 0.15);
+        }
+
+        .btn-primary i {
+            color: white;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0 18px;
+            background: rgba(230, 238, 245, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 6px;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 6px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 40px;
+            color: #4a5f6e;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            letter-spacing: -0.2px;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #0b2a3b;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            font-weight: 700;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-container input,
+        .filter-container select {
+            flex: 1 1 140px;
+            padding: 14px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a2e3d;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            transition: 0.2s;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+
+        .visit-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 20px 18px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 6px 24px rgba(0, 10, 30, 0.04);
+            transition: all 0.15s ease;
+            border-left: 6px solid #b8cbd9;
+        }
+
+        .visit-card.clickable {
+            cursor: pointer;
+        }
+
+        .visit-card.clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(0, 10, 30, 0.08);
+        }
+
+        .visit-card.pending {
+            border-left-color: #e67e22;
+        }
+
+        .visit-card.progress {
+            border-left-color: #2a7faa;
+        }
+
+        .visit-card.completed {
+            border-left-color: #2a9d8f;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-no {
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.2px;
+            color: #0b202e;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            background: #eef3f7;
+            color: #2b4d62;
+        }
+
+        .badge-pending {
+            background: #fef3e7;
+            color: #b45f1b;
+        }
+
+        .badge-progress {
+            background: #e3f0fa;
+            color: #1b6b93;
+        }
+
+        .badge-completed {
+            background: #ddf3f0;
+            color: #1a7a6e;
+        }
+
+        .purpose-box {
+            background: rgba(240, 246, 250, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 12px 14px;
+            border-radius: 18px;
+            margin: 8px 0 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a3343;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .card-row {
+            font-size: 14px;
+            color: #1d3748;
+            margin-bottom: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px 8px;
+            line-height: 1.5;
+        }
+
+        .card-row strong {
+            font-weight: 600;
+            color: #0b202e;
+        }
+
+        .phone-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 6px;
+        }
+
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 40px;
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            transition: 0.15s;
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .icon-call {
+            background: #2a7faa;
+            color: white;
+        }
+
+        .icon-whatsapp {
+            background: #25a37a;
+            color: white;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            flex: 1 1 auto;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            transition: 0.15s;
+            text-align: center;
+            letter-spacing: -0.2px;
+        }
+
+        .btn-inspect {
+            background: linear-gradient(145deg, #7b5d9e, #5e3f7a);
+        }
+
+        .btn-complete {
+            background: linear-gradient(145deg, #e0884e, #c96d38);
+        }
+
+        .btn-edit {
+            background: linear-gradient(145deg, #3a8fba, #1a6f9a);
+        }
+
+        .btn-details {
+            background: linear-gradient(145deg, #2a9d8f, #1b6d63);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 25, 40, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px 12px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            margin: 10px auto;
+            padding: 24px 20px;
+            border-radius: 36px;
+            max-width: 520px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0.5;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #0b202e;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            border: none;
+            background: transparent;
+            color: #4a6579;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1a3343;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.6);
+            font-family: 'Inter', sans-serif;
+            color: #0b202e;
+            outline: none;
+        }
+
+        textarea {
+            border-radius: 24px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(145deg, #214a60, #142d3b);
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .preview-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preview-card {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background: #eee;
+        }
+
+        .preview-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-remove-photo {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            line-height: 20px;
+            cursor: pointer;
+        }
+
+        /* Detail Modal Specifics */
+        .detail-section {
+            background: rgba(245, 249, 252, 0.8);
+            border-radius: 20px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .detail-section h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #557285;
+            margin-bottom: 8px;
+        }
+
+        .detail-row {
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #1e3545;
+            line-height: 1.4;
+        }
+
+        .detail-row strong {
+            color: #0b1f2d;
+        }
+
+        /* Map Embed */
+        .map-wrapper {
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            margin-top: 8px;
+        }
+
+        #detailMap {
+            width: 100%;
+            height: 200px;
+            z-index: 10;
+        }
+
+        .map-overlay-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #1a73e8;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            transition: 0.15s;
+        }
+
+        .map-overlay-btn:active {
+            background: #1557b0;
+        }
+
+        /* Gallery in Details */
+        .detail-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .gallery-thumb {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .gallery-thumb:hover {
+            transform: scale(1.03);
+            border-color: #2a7faa;
+        }
+
+        /* Lightbox Image Zoom Modal */
+        #lightboxModal {
+            z-index: 3000;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .lightbox-toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 3100;
+        }
+
+        .lightbox-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+            transition: background 0.2s;
+        }
+
+        .lightbox-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .lightbox-img-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #lightboxImg {
+            max-width: 90vw;
+            max-height: 85vh;
+            object-fit: contain;
+            transition: transform 0.05s ease-out;
+            /* reduced delay for smoother panning */
+            user-select: none;
+            -webkit-user-drag: none;
+            /* Prevents native ghost image drag */
+            cursor: grab;
+            touch-action: none;
+            /* Prevents default page scroll on mobile */
+        }
+
+        #lightboxImg.panning {
+            cursor: grabbing;
+            transition: none;
+            /* Instant response during active drag */
+        }
+
+        #lightboxImg:active {
+            cursor: grabbing;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #3e5f74;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 40px;
+            border: 1px dashed rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h2><i class="fas fa-map-pin" style="margin-right: 6px; color: #1f4a62;"></i>Field Register</h2>
+        <div class="header-actions">
+            <button class="btn-icon" id="syncBtn" onclick="syncWithSheet()"><i class="fas fa-sync-alt"></i>
+                Sync</button>
+            <button class="btn-icon btn-primary" onclick="openModal('createModal')"><i class="fas fa-plus"></i>
+                New</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-container">
+        <button class="tab-btn active" id="tabActive" onclick="switchTab('active')">Active</button>
+        <button class="tab-btn" id="tabCompleted" onclick="switchTab('completed')">Completed</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-container">
+        <input type="text" id="searchInput" placeholder="Search name, file, phone..." oninput="renderList()">
+        <select id="wardFilter" onchange="renderList()">
+            <option value="ALL">All Wards</option>
+        </select>
+    </div>
+
+    <div id="visitList"></div>
+
+    <!-- DETAILS MODAL -->
+    <div class="modal" id="detailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 id="detailFileNo" style="margin: 0;"></h3>
+                    <span id="detailBadge" class="badge badge-completed"
+                        style="margin-top: 6px; display: inline-block;">Completed</span>
+                </div>
+                <button class="close-btn" onclick="closeModal('detailsModal')">&times;</button>
+            </div>
+
+            <div class="detail-section">
+                <h4>Applicant Details</h4>
+                <div class="detail-row"><strong>Name:</strong> <span id="detailName"></span></div>
+                <div class="detail-row"><strong>Mobile:</strong> <span id="detailMobile"></span></div>
+                <div class="detail-row"><strong>House:</strong> <span id="detailHouse"></span></div>
+                <div class="detail-row"><strong>Ward & Place:</strong> <span id="detailLocation"></span></div>
+                <div class="detail-row"><strong>Route:</strong> <span id="detailRoute"></span></div>
+            </div>
+
+            <div class="detail-section">
+                <h4>Inspection & Verification</h4>
+                <div class="detail-row"><strong>Purpose:</strong> <span id="detailPurpose"></span></div>
+                <div class="detail-row"><strong>Eligibility:</strong> <span id="detailEligibility"></span></div>
+                <div class="detail-row"><strong>Field Remarks:</strong> <span id="detailFieldRemarks"></span></div>
+                <div class="detail-row"><strong>Timings:</strong> <span id="detailTimes"></span></div>
+            </div>
+
+            <!-- Map View Container -->
+            <div class="detail-section" id="detailMapSection">
+                <h4>Location & Navigation</h4>
+                <div class="map-wrapper">
+                    <div id="detailMap"></div>
+                    <a href="#" target="_blank" id="googleMapsLink" class="map-overlay-btn">
+                        <i class="fab fa-google"></i> Navigate with Google Maps
+                    </a>
+                </div>
+            </div>
+
+            <!-- Photos & Documents -->
+            <div class="detail-section" id="detailPhotosSection">
+                <h4>Site Photos</h4>
+                <div id="detailPhotosContainer" class="detail-gallery"></div>
+            </div>
+
+            <div class="detail-section" id="detailPdfSection" style="display:none;">
+                <h4>Attached Document</h4>
+                <a href="#" target="_blank" id="detailPdfLink" class="btn-icon"
+                    style="text-decoration:none; display:inline-flex; width:100%; justify-content:center; margin-top:6px;">
+                    <i class="fas fa-file-pdf" style="color:#e74c3c;"></i> Open PDF Document
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULLSCREEN ZOOMABLE IMAGE LIGHTBOX -->
+    <div id="lightboxModal" class="modal">
+        <div class="lightbox-toolbar">
+            <button class="lightbox-btn" onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
+            <button class="lightbox-btn" onclick="zoomOut()"><i class="fas fa-search-minus"></i></button>
+            <button class="lightbox-btn" onclick="resetZoom()"><i class="fas fa-undo"></i></button>
+            <button class="lightbox-btn" onclick="closeLightbox()">&times;</button>
+        </div>
+        <div class="lightbox-img-wrapper" id="lightboxWrapper">
+            <img id="lightboxImg" src="" alt="Full preview">
+        </div>
+    </div>
+
+    <!-- CREATE MODAL -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-fancy" style="margin-right: 10px; color: #1f4a62;"></i>Pre‑Departure</h3>
+                <button class="close-btn" onclick="closeModal('createModal')">&times;</button>
+            </div>
+            <form id="createForm">
+                <div class="form-group"><label>File Number</label><input type="text" id="fileNumber" required
+                        placeholder="e.g. A1-1024/26"></div>
+                <div class="form-group"><label>Name</label><input type="text" id="name" required
+                        placeholder="Applicant name"></div>
+                <div class="form-group"><label>Mobile</label><input type="tel" id="mobile" required
+                        placeholder="10-digit mobile"></div>
+                <div class="form-group"><label>House Name</label><input type="text" id="houseName" required
+                        placeholder="House name"></div>
+                <div class="form-group"><label>Purpose</label><textarea id="purpose" rows="2" required
+                        placeholder="Reason for inspection"></textarea></div>
+                <div class="form-group"><label>Ward</label><input type="text" id="ward" required
+                        placeholder="e.g. Ward 5"></div>
+                <div class="form-group"><label>Place</label><input type="text" id="place" required
+                        placeholder="Location"></div>
+                <div class="form-group"><label>Route</label><input type="text" id="route" required
+                        placeholder="Travel route"></div>
+                <div class="form-group"><label>Office Remarks</label><textarea id="remarks" rows="2"></textarea></div>
+                <div class="form-group"><label>Leaving Time</label><input type="datetime-local" id="leavingTime"
+                        required></div>
+                <button type="submit" class="submit-btn" id="saveEntryBtn">Save Entry</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit" style="margin-right: 10px; color: #2a7faa;"></i>Edit Visit</h3>
+                <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group"><label>File Number</label><input type="text" id="editFileNumber" required
+                        placeholder="e.g. A1-1024/26"></div>
+                <div class="form-group"><label>Name</label><input type="text" id="editName" required
+                        placeholder="Applicant name"></div>
+                <div class="form-group"><label>Mobile</label><input type="tel" id="editMobile" required
+                        placeholder="10-digit mobile"></div>
+                <div class="form-group"><label>House Name</label><input type="text" id="editHouseName" required
+                        placeholder="House name"></div>
+                <div class="form-group"><label>Purpose</label><textarea id="editPurpose" rows="2" required
+                        placeholder="Reason for inspection"></textarea></div>
+                <div class="form-group"><label>Ward</label><input type="text" id="editWard" required
+                        placeholder="e.g. Ward 5"></div>
+                <div class="form-group"><label>Place</label><input type="text" id="editPlace" required
+                        placeholder="Location"></div>
+                <div class="form-group"><label>Route</label><input type="text" id="editRoute" required
+                        placeholder="Travel route"></div>
+                <div class="form-group"><label>Office Remarks</label><textarea id="editRemarks" rows="2"></textarea>
+                </div>
+                <div class="form-group"><label>Leaving Time</label><input type="datetime-local" id="editLeavingTime"
+                        required></div>
+                <button type="submit" class="submit-btn" id="editEntryBtn">Update Entry</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIELD INSPECTION MODAL -->
+    <div class="modal" id="fieldModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-clipboard-check" style="margin-right: 10px; color: #6c4f8d;"></i>On‑Site Inspection
+                </h3>
+                <button class="close-btn" onclick="closeModal('fieldModal')">&times;</button>
+            </div>
+            <form id="fieldForm">
+                <div class="form-group">
+                    <button type="button" class="btn-action btn-inspect" style="width:100%; margin-bottom:8px;"
+                        onclick="getGPS()">
+                        <i class="fas fa-satellite-dish"></i> Capture GPS
+                    </button>
+                    <input type="text" id="gpsDisplay" readonly placeholder="GPS Coordinates" required>
+                </div>
+                <div class="form-group"><label>Eligibility Status</label><input type="text" id="fieldEligibility"
+                        required placeholder="Eligible / Ineligible"></div>
+                <div class="form-group"><label>Field Remarks</label><textarea id="fieldRemarks" rows="2"
+                        required></textarea></div>
+
+                <div class="form-group">
+                    <label>Site Photos (Optional, Max 4)</label>
+                    <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotoSelect(event)">
+                    <small style="font-size: 11px; color: #666; display: block; margin-top: 4px;">Select up to 4
+                        photos.</small>
+                    <div id="photoPreviewContainer" class="preview-grid"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>PDF Document (Optional)</label>
+                    <input type="file" id="pdfFile" accept="application/pdf">
+                </div>
+
+                <button type="submit" class="submit-btn" id="uploadBtn">Upload &amp; Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet JS for Map rendering -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3n0Uwde5kHgMtjN_JELRJ5TuXSsJ5sKAZiwDQ6K3ei_rw7cnpeFXFFGvS8IPIPgsGSw/exec";
+        const CLOUD_NAME = "dpeuqcbtm";
+        const UPLOAD_PRESET = "movement_register";
+
+        let tasks = JSON.parse(localStorage.getItem('app_tasks')) || [];
+        let selectedTaskId = null;
+        let currentTab = 'active';
+        let selectedPhotos = [];
+        let detailMapInstance = null;
+        let currentMarker = null;
+
+        function openModal(id) { document.getElementById(id).style.display = 'block'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function formatDateNice(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                return d.toLocaleString('en-IN', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: true
+                }).replace(',', '');
+            } catch (e) { return dateStr; }
+        }
+
+        // ======== DETAILS MODAL & MAP INITIALIZATION ========
+        function openDetailModal(id) {
+            const task = tasks.find(x => String(x.id) === String(id));
+            if (!task) return;
+
+            document.getElementById('detailFileNo').textContent = task.fileNumber || 'File Details';
+            document.getElementById('detailName').textContent = task.name || '-';
+            document.getElementById('detailMobile').textContent = task.mobile || '-';
+            document.getElementById('detailHouse').textContent = task.houseName || '-';
+            document.getElementById('detailLocation').textContent = `Ward ${task.ward || '-'}, ${task.place || '-'}`;
+            document.getElementById('detailRoute').textContent = task.route || '-';
+            document.getElementById('detailPurpose').textContent = task.purpose || '-';
+            document.getElementById('detailEligibility').textContent = task.eligibility || 'Pending';
+            document.getElementById('detailFieldRemarks').textContent = task.fieldRemarks || 'None recorded';
+
+            const lTime = task.leavingTime ? formatDateNice(task.leavingTime) : 'N/A';
+            const sTime = task.siteTime ? formatDateNice(task.siteTime) : 'N/A';
+            const rTime = task.returnTime ? formatDateNice(task.returnTime) : 'N/A';
+            document.getElementById('detailTimes').textContent = `Left: ${lTime} | Visited: ${sTime} | Returned: ${rTime} (${task.duration || '-'})`;
+
+            // Photo Gallery Setup
+            const galleryContainer = document.getElementById('detailPhotosContainer');
+            galleryContainer.innerHTML = '';
+            let photos = [];
+            if (task.photoUrls) {
+                photos = String(task.photoUrls).split(',').map(s => s.trim()).filter(Boolean);
+            }
+
+            if (photos.length > 0) {
+                document.getElementById('detailPhotosSection').style.display = 'block';
+                photos.forEach(url => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'gallery-thumb';
+                    img.onclick = () => openLightbox(url);
+                    galleryContainer.appendChild(img);
+                });
+            } else {
+                document.getElementById('detailPhotosSection').style.display = 'none';
+            }
+
+            // PDF Setup
+            const pdfSection = document.getElementById('detailPdfSection');
+            if (task.pdfUrl && task.pdfUrl.trim() !== '') {
+                pdfSection.style.display = 'block';
+                document.getElementById('detailPdfLink').href = task.pdfUrl.trim();
+            } else {
+                pdfSection.style.display = 'none';
+            }
+
+            // Map Setup
+            const mapSection = document.getElementById('detailMapSection');
+            const gMapsBtn = document.getElementById('googleMapsLink');
+
+            openModal('detailsModal');
+
+            let lat = null, lng = null;
+            if (task.siteLocation && task.siteLocation.includes(',')) {
+                const parts = task.siteLocation.split(',').map(p => parseFloat(p.trim()));
+                if (!isNaN(parts[0]) && !isNaN(parts[1])) {
+                    lat = parts[0];
+                    lng = parts[1];
+                }
+            }
+
+            if (lat !== null && lng !== null) {
+                mapSection.style.display = 'block';
+                gMapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+                // Leaflet requires container visibility to correctly calculate dimensions
+                setTimeout(() => {
+                    if (!detailMapInstance) {
+                        detailMapInstance = L.map('detailMap');
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap'
+                        }).addTo(detailMapInstance);
+                    }
+                    detailMapInstance.invalidateSize();
+                    detailMapInstance.setView([lat, lng], 16);
+
+                    if (currentMarker) detailMapInstance.removeLayer(currentMarker);
+                    currentMarker = L.marker([lat, lng]).addTo(detailMapInstance)
+                        .bindPopup(`<b>${task.name || 'Site'}</b><br>Ward ${task.ward || ''}`)
+                        .openPopup();
+                }, 250);
+            } else {
+                mapSection.style.display = 'none';
+            }
+        }
+
+        // ======== ZOOMABLE LIGHTBOX CONTROLS (MOUSE + TOUCH + PINCH) ========
+        let currentZoom = 1;
+        let isPanning = false;
+        let startX = 0, startY = 0;
+        let translateX = 0, translateY = 0;
+        let initialPinchDistance = 0;
+        let initialZoom = 1;
+
+        const lightboxModal = document.getElementById('lightboxModal');
+        const lightboxWrapper = document.getElementById('lightboxWrapper');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        function openLightbox(url) {
+            lightboxImg.src = url;
+            resetZoom();
+            lightboxModal.style.display = 'flex';
+        }
+
+        function closeLightbox() {
+            lightboxModal.style.display = 'none';
+            resetZoom();
+        }
+
+        function applyTransform() {
+            lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.4, 5);
+            applyTransform();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.4, 1);
+            if (currentZoom === 1) {
+                translateX = 0;
+                translateY = 0;
+            }
+            applyTransform();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            applyTransform();
+        }
+
+        // --- MOUSE DRAG HANDLERS ---
+        lightboxImg.addEventListener('dragstart', (e) => e.preventDefault()); // Stop default image dragging
+
+        lightboxWrapper.addEventListener('mousedown', (e) => {
+            if (currentZoom <= 1) return;
+            e.preventDefault();
+            isPanning = true;
+            lightboxImg.classList.add('panning');
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            e.preventDefault();
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            applyTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+            lightboxImg.classList.remove('panning');
+        });
+
+        // --- WHEEL ZOOM ---
+        lightboxWrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) zoomIn();
+            else zoomOut();
+        }, { passive: false });
+
+        // --- MOBILE TOUCH (PAN & PINCH-TO-ZOOM) ---
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        lightboxWrapper.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1 && currentZoom > 1) {
+                // Single finger pan
+                isPanning = true;
+                startX = e.touches[0].clientX - translateX;
+                startY = e.touches[0].clientY - translateY;
+            } else if (e.touches.length === 2) {
+                // Double finger pinch
+                isPanning = false;
+                initialPinchDistance = getTouchDistance(e.touches);
+                initialZoom = currentZoom;
+            }
+        }, { passive: false });
+
+        lightboxWrapper.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1 && isPanning && currentZoom > 1) {
+                e.preventDefault();
+                translateX = e.touches[0].clientX - startX;
+                translateY = e.touches[0].clientY - startY;
+                applyTransform();
+            } else if (e.touches.length === 2 && initialPinchDistance > 0) {
+                e.preventDefault();
+                const dist = getTouchDistance(e.touches);
+                const factor = dist / initialPinchDistance;
+                currentZoom = Math.min(Math.max(initialZoom * factor, 1), 5);
+                applyTransform();
+            }
+        }, { passive: false });
+
+        lightboxWrapper.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                initialPinchDistance = 0;
+            }
+            if (e.touches.length === 0) {
+                isPanning = false;
+                if (currentZoom <= 1) {
+                    translateX = 0;
+                    translateY = 0;
+                    applyTransform();
+                }
+            }
+        });
+
+        // ======== SYNC ========
+        async function syncWithSheet() {
+            const syncBtn = document.getElementById('syncBtn');
+            syncBtn.disabled = true;
+            syncBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Syncing';
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getAllTasks`);
+                if (!res.ok) throw new Error('Failed');
+                const sheetData = await res.json();
+                if (!Array.isArray(sheetData) || sheetData.length === 0) {
+                    tasks = [];
+                    localStorage.removeItem('app_tasks');
+                    alert("Sheet is empty. Local cleared.");
+                    updateWardDropdown(); renderList();
+                    return;
+                }
+                tasks = sheetData.map(row => ({
+                    id: String(row[0]), fileNumber: row[1], name: row[2], houseName: row[3], purpose: row[4],
+                    ward: row[5], place: row[6], route: row[7], remarks: row[8], eligibility: row[9] || "Pending Verification",
+                    leavingTime: row[10], siteTime: row[11], siteLocation: row[12], fieldRemarks: row[13],
+                    photoUrls: row[14], pdfUrl: row[15], returnTime: row[16], duration: row[17],
+                    status: row[18] || "Pending Field Visit", mobile: row[19] || ""
+                }));
+                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                updateWardDropdown(); renderList();
+                alert("✅ Synced successfully!");
+            } catch (e) { alert("Sync failed. Check connection."); }
+            finally { syncBtn.disabled = false; syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync'; }
+        }
+
+        // ======== CREATE ========
+        document.getElementById('createForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveEntryBtn');
+            btn.disabled = true; btn.innerText = 'Saving...';
+            const task = {
+                action: "create",
+                fileNumber: document.getElementById('fileNumber').value,
+                name: document.getElementById('name').value,
+                mobile: document.getElementById('mobile').value,
+                houseName: document.getElementById('houseName').value,
+                purpose: document.getElementById('purpose').value,
+                ward: document.getElementById('ward').value,
+                place: document.getElementById('place').value,
+                route: document.getElementById('route').value,
+                remarks: document.getElementById('remarks').value,
+                eligibility: "Pending Verification",
+                leavingTime: document.getElementById('leavingTime').value,
+                status: "Pending Field Visit"
+            };
+            try {
+                const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(task) });
+                const data = await res.json();
+                task.id = String(data.id);
+            } catch (e) { task.id = "ID-" + Date.now().toString().slice(-4); }
+            tasks.push(task);
+            localStorage.setItem('app_tasks', JSON.stringify(tasks));
+            updateWardDropdown(); renderList();
+            closeModal('createModal');
+            this.reset();
+            btn.disabled = false; btn.innerText = 'Save Entry';
+        });
+
+        // ======== EDIT ========
+        function openEditForm(id) {
+            const task = tasks.find(x => String(x.id) === String(id));
+            if (!task) return;
+            document.getElementById('editId').value = task.id;
+            document.getElementById('editFileNumber').value = task.fileNumber || '';
+            document.getElementById('editName').value = task.name || '';
+            document.getElementById('editMobile').value = task.mobile || '';
+            document.getElementById('editHouseName').value = task.houseName || '';
+            document.getElementById('editPurpose').value = task.purpose || '';
+            document.getElementById('editWard').value = task.ward || '';
+            document.getElementById('editPlace').value = task.place || '';
+            document.getElementById('editRoute').value = task.route || '';
+            document.getElementById('editRemarks').value = task.remarks || '';
+            if (task.leavingTime) {
+                try {
+                    const d = new Date(task.leavingTime);
+                    if (!isNaN(d.getTime())) {
+                        document.getElementById('editLeavingTime').value = d.toISOString().slice(0, 16);
+                    }
+                } catch (e) { document.getElementById('editLeavingTime').value = ''; }
+            }
+            openModal('editModal');
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('editEntryBtn');
+            btn.disabled = true; btn.innerText = 'Updating...';
+            const id = document.getElementById('editId').value;
+            const taskIndex = tasks.findIndex(x => String(x.id) === String(id));
+            if (taskIndex === -1) { alert('Task not found'); btn.disabled = false; btn.innerText = 'Update Entry'; return; }
+
+            const updatedTask = {
+                ...tasks[taskIndex],
+                fileNumber: document.getElementById('editFileNumber').value,
+                name: document.getElementById('editName').value,
+                mobile: document.getElementById('editMobile').value,
+                houseName: document.getElementById('editHouseName').value,
+                purpose: document.getElementById('editPurpose').value,
+                ward: document.getElementById('editWard').value,
+                place: document.getElementById('editPlace').value,
+                route: document.getElementById('editRoute').value,
+                remarks: document.getElementById('editRemarks').value,
+                leavingTime: document.getElementById('editLeavingTime').value,
+            };
+
+            const payload = { action: "update", id: id, ...updatedTask };
+            try {
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                tasks[taskIndex] = updatedTask;
+                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                updateWardDropdown(); renderList();
+                closeModal('editModal');
+                alert("✅ Visit updated!");
+            } catch (e) { alert("Update failed. Check connection."); }
+            finally { btn.disabled = false; btn.innerText = 'Update Entry'; }
+        });
+
+        // ======== PHOTO SELECTION ========
+        function handlePhotoSelect(event) {
+            const files = Array.from(event.target.files);
+            if (selectedPhotos.length + files.length > 4) {
+                alert("You can select a maximum of 4 photos.");
+                event.target.value = "";
+                return;
+            }
+            selectedPhotos = selectedPhotos.concat(files);
+            event.target.value = "";
+            renderPhotoPreviews();
+        }
+
+        function renderPhotoPreviews() {
+            const container = document.getElementById('photoPreviewContainer');
+            container.innerHTML = '';
+            selectedPhotos.forEach((file, index) => {
+                const card = document.createElement('div');
+                card.className = 'preview-card';
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn-remove-photo';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = () => {
+                    selectedPhotos.splice(index, 1);
+                    renderPhotoPreviews();
+                };
+                card.appendChild(img);
+                card.appendChild(removeBtn);
+                container.appendChild(card);
+            });
+        }
+
+        function openFieldForm(id) {
+            selectedTaskId = String(id);
+            const task = tasks.find(x => String(x.id) === selectedTaskId);
+            if (task && task.eligibility) {
+                document.getElementById('fieldEligibility').value = task.eligibility !== "Pending Verification" ? task.eligibility : '';
+            }
+            selectedPhotos = [];
+            renderPhotoPreviews();
+            openModal('fieldModal');
+        }
+
+        function getGPS() {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { document.getElementById('gpsDisplay').value = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`; },
+                () => alert("Unable to fetch location. Please grant permission.")
+            );
+        }
+
+        function compressImage(file, maxW = 1280, maxH = 1280, quality = 0.75) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.src = ev.target.result;
+                    img.onload = () => {
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; } }
+                        else { if (h > maxH) { w = Math.round((w * maxH) / h); h = maxH; } }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        canvas.toBlob((blob) => {
+                            if (blob) resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+                            else reject('Canvas fail');
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
+        async function uploadToCloudinary(file) {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, { method: 'POST', body: fd });
+            const data = await res.json();
+            return data.secure_url;
+        }
+
+        document.getElementById('fieldForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const pdf = document.getElementById('pdfFile').files[0] || null;
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+
+            try {
+                let photoUrls = [];
+                for (let i = 0; i < selectedPhotos.length; i++) {
+                    btn.innerText = `Compressing ${i + 1}/${selectedPhotos.length}...`;
+                    const compressed = await compressImage(selectedPhotos[i]);
+                    btn.innerText = `Uploading photo ${i + 1}/${selectedPhotos.length}...`;
+                    let url = await uploadToCloudinary(compressed);
+                    photoUrls.push(url);
+                }
+
+                let pdfUrl = "";
+                if (pdf) {
+                    btn.innerText = "Uploading PDF...";
+                    pdfUrl = await uploadToCloudinary(pdf);
+                }
+
+                const fieldData = {
+                    action: "updateField",
+                    id: selectedTaskId,
+                    eligibility: document.getElementById('fieldEligibility').value,
+                    siteTime: new Date().toISOString(),
+                    siteLocation: document.getElementById('gpsDisplay').value,
+                    fieldRemarks: document.getElementById('fieldRemarks').value,
+                    photoUrls: photoUrls.join(", "),
+                    pdfUrl: pdfUrl
+                };
+
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(fieldData) });
+                let t = tasks.find(x => String(x.id) === selectedTaskId);
+                if (t) Object.assign(t, fieldData, { status: "On Field / In Progress" });
+                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                alert("✅ Field data saved!");
+
+                selectedPhotos = [];
+                renderPhotoPreviews();
+                closeModal('fieldModal');
+                this.reset();
+                updateWardDropdown(); renderList();
+            } catch (err) { alert("Upload error. Check connection."); }
+            finally { btn.innerText = "Upload & Save"; btn.disabled = false; }
+        });
+
+        // ======== COMPLETE ========
+        async function completeTask(id) {
+            let t = tasks.find(x => String(x.id) === String(id));
+            if (!t) return;
+            const returnTime = new Date();
+            const departureTime = new Date(t.leavingTime);
+            const durationMins = Math.round((returnTime - departureTime) / 60000);
+            const payload = { action: "complete", id, returnTime: returnTime.toISOString(), duration: `${durationMins} mins` };
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+            t.status = "Completed"; t.returnTime = payload.returnTime; t.duration = payload.duration;
+            localStorage.setItem('app_tasks', JSON.stringify(tasks));
+            updateWardDropdown(); renderList();
+        }
+
+        // ======== TAB & RENDERING ========
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabActive').classList.toggle('active', tab === 'active');
+            document.getElementById('tabCompleted').classList.toggle('active', tab === 'completed');
+            document.getElementById('searchInput').value = '';
+            updateWardDropdown(); renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('visitList');
+            container.innerHTML = '';
+            const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+            const ward = document.getElementById('wardFilter')?.value || 'ALL';
+
+            let filtered = tasks.filter(t => {
+                if (currentTab === 'completed') return t.status === 'Completed';
+                return t.status !== 'Completed';
+            });
+
+            if (ward !== 'ALL') {
+                filtered = filtered.filter(t => String(t.ward || '').trim() === ward);
+            }
+
+            if (search) {
+                filtered = filtered.filter(t => {
+                    return [t.name, t.mobile, t.fileNumber, t.houseName, t.place, t.purpose]
+                        .some(val => String(val || '').toLowerCase().includes(search));
+                });
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox" style="font-size:24px; opacity:0.5; display:block; margin-bottom:8px;"></i>No visits found</div>`;
+                return;
+            }
+
+            filtered.slice().reverse().forEach(t => {
+                let cardClass = 'pending', badgeClass = 'badge-pending';
+                if (t.status === 'On Field / In Progress') { cardClass = 'progress'; badgeClass = 'badge-progress'; }
+                if (t.status === 'Completed') { cardClass = 'completed clickable'; badgeClass = 'badge-completed'; }
+
+                const cleanPhone = t.mobile ? String(t.mobile).replace(/[^0-9]/g, '') : '';
+                const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+                let phoneMarkup = '';
+                if (cleanPhone) {
+                    phoneMarkup = `
+            <span class="phone-wrapper" onclick="event.stopPropagation()">
+                <a href="tel:${cleanPhone}" class="icon-btn icon-call" title="Call"><i class="fas fa-phone"></i></a>
+                <a href="https://wa.me/${waPhone}" target="_blank" class="icon-btn icon-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            </span>`;
+                }
+
+                const isCompleted = t.status === 'Completed';
+                const cardOnClick = isCompleted ? `onclick="openDetailModal('${t.id}')"` : '';
+
+                container.innerHTML += `
+    <div class="visit-card ${cardClass}" ${cardOnClick}>
+        <div class="card-header">
+            <span class="file-no"><i class="far fa-file-alt" style="margin-right:6px; opacity:0.6;"></i>${t.fileNumber || ''}</span>
+            <span class="badge ${badgeClass}">${t.status || ''}</span>
+        </div>
+        <div class="purpose-box"><i class="fas fa-bullseye" style="margin-right:8px; opacity:0.6;"></i>${t.purpose || ''}</div>
+        <div class="card-row"><strong>Name:</strong> ${t.name || ''} (${t.houseName || ''})</div>
+        <div class="card-row"><strong>Mobile:</strong> ${t.mobile || 'N/A'} ${phoneMarkup}</div>
+        <div class="card-row"><strong>Location:</strong> Ward ${t.ward || ''}, ${t.place || ''}</div>
+        <div class="card-row"><strong>Eligibility:</strong> ${t.eligibility || 'Pending'}</div>
+        ${t.duration ? `<div class="card-row"><strong>Duration:</strong> ${t.duration}</div>` : ''}
+        
+        <div class="card-actions" onclick="event.stopPropagation()">
+            ${!isCompleted ? `<button class="btn-action btn-edit" onclick="openEditForm('${t.id}')"><i class="fas fa-pencil-alt"></i> Edit</button>` : ''}
+            ${t.status === 'Pending Field Visit' ? `<button class="btn-action btn-inspect" onclick="openFieldForm('${t.id}')"><i class="fas fa-search-location"></i> Inspect</button>` : ''}
+            ${t.status === 'On Field / In Progress' ? `<button class="btn-action btn-complete" onclick="completeTask('${t.id}')"><i class="fas fa-check-circle"></i> Complete</button>` : ''}
+            ${isCompleted ? `<button class="btn-action btn-details" onclick="openDetailModal('${t.id}')"><i class="fas fa-eye"></i> View Details</button>` : ''}
+        </div>
+    </div>`;
+            });
+        }
+
+        function updateWardDropdown() {
+            const sel = document.getElementById('wardFilter');
+            const currentVal = sel.value;
+            const activeTasks = tasks.filter(t => {
+                if (currentTab === 'completed') return t.status === 'Completed';
+                return t.status !== 'Completed';
+            });
+            const wards = [...new Set(activeTasks.map(t => String(t.ward).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            sel.innerHTML = '<option value="ALL">All Wards</option>';
+            wards.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w; opt.textContent = `Ward ${w}`;
+                sel.appendChild(opt);
+            });
+            if (wards.includes(currentVal)) sel.value = currentVal;
+            else sel.value = 'ALL';
+        }
+
+        updateWardDropdown();
+        renderList();
+    </script>
+</body>
+
+</html>
