@@ -197,6 +197,13 @@
             color: #0b202e;
         }
 
+        .badges-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .badge {
             font-size: 11px;
             padding: 6px 14px;
@@ -221,6 +228,16 @@
         .badge-completed {
             background: #ddf3f0;
             color: #1a7a6e;
+        }
+
+        .badge-priority {
+            background: #fde8e8;
+            color: #c53030;
+        }
+
+        .badge-cluster {
+            background: #e8f4fd;
+            color: #205c82;
         }
 
         .purpose-box {
@@ -484,7 +501,6 @@
             cursor: pointer;
         }
 
-        /* Detail Modal Specifics */
         .detail-section {
             background: rgba(245, 249, 252, 0.8);
             border-radius: 20px;
@@ -512,7 +528,6 @@
             color: #0b1f2d;
         }
 
-        /* Map Embed */
         .map-wrapper {
             border-radius: 20px;
             overflow: hidden;
@@ -544,11 +559,6 @@
             transition: 0.15s;
         }
 
-        .map-overlay-btn:active {
-            background: #1557b0;
-        }
-
-        /* Gallery in Details */
         .detail-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -572,7 +582,6 @@
             border-color: #2a7faa;
         }
 
-        /* Lightbox Image Zoom Modal */
         #lightboxModal {
             z-index: 3000;
             background: rgba(0, 0, 0, 0.9);
@@ -608,10 +617,6 @@
             transition: background 0.2s;
         }
 
-        .lightbox-btn:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-
         .lightbox-img-wrapper {
             width: 100vw;
             height: 100vh;
@@ -627,23 +632,15 @@
             max-height: 85vh;
             object-fit: contain;
             transition: transform 0.05s ease-out;
-            /* reduced delay for smoother panning */
             user-select: none;
             -webkit-user-drag: none;
-            /* Prevents native ghost image drag */
             cursor: grab;
             touch-action: none;
-            /* Prevents default page scroll on mobile */
         }
 
         #lightboxImg.panning {
             cursor: grabbing;
             transition: none;
-            /* Instant response during active drag */
-        }
-
-        #lightboxImg:active {
-            cursor: grabbing;
         }
 
         .empty-state {
@@ -663,10 +660,18 @@
     <div class="header">
         <h2><i class="fas fa-map-pin" style="margin-right: 6px; color: #1f4a62;"></i>Field Register</h2>
         <div class="header-actions">
-            <button class="btn-icon" id="syncBtn" onclick="syncWithSheet()"><i class="fas fa-sync-alt"></i>
-                Sync</button>
-            <button class="btn-icon btn-primary" onclick="openModal('createModal')"><i class="fas fa-plus"></i>
-                New</button>
+
+            <div class="header-actions">
+                <button class="btn-icon" id="tourDiaryBtn" onclick="exportTourDiary()">
+                    <i class="fas fa-file-export" style="color: #2a7faa;"></i> Tour Diary
+                </button>
+                <button class="btn-icon" id="syncBtn" onclick="syncWithSheet()">
+                    <i class="fas fa-sync-alt"></i> Sync
+                </button>
+                <button class="btn-icon btn-primary" onclick="openModal('createModal')">
+                    <i class="fas fa-plus"></i> New
+                </button>
+            </div>
         </div>
     </div>
 
@@ -676,11 +681,14 @@
         <button class="tab-btn" id="tabCompleted" onclick="switchTab('completed')">Completed</button>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters: Search + Ward Filter + Priority/Cluster Filter -->
     <div class="filter-container">
-        <input type="text" id="searchInput" placeholder="Search name, file, phone..." oninput="renderList()">
+        <input type="text" id="searchInput" placeholder="Search name, file, place..." oninput="renderList()">
         <select id="wardFilter" onchange="renderList()">
             <option value="ALL">All Wards</option>
+        </select>
+        <select id="clusterFilter" onchange="renderList()">
+            <option value="ALL">All Clusters / Priority</option>
         </select>
     </div>
 
@@ -692,8 +700,10 @@
             <div class="modal-header">
                 <div>
                     <h3 id="detailFileNo" style="margin: 0;"></h3>
-                    <span id="detailBadge" class="badge badge-completed"
-                        style="margin-top: 6px; display: inline-block;">Completed</span>
+                    <div class="badges-group" style="margin-top: 6px;">
+                        <span id="detailBadge" class="badge badge-completed">Completed</span>
+                        <span id="detailPriorityBadge" class="badge badge-priority" style="display:none;"></span>
+                    </div>
                 </div>
                 <button class="close-btn" onclick="closeModal('detailsModal')">&times;</button>
             </div>
@@ -709,6 +719,7 @@
 
             <div class="detail-section">
                 <h4>Inspection & Verification</h4>
+                <div class="detail-row"><strong>Priority / Cluster:</strong> <span id="detailPriority"></span></div>
                 <div class="detail-row"><strong>Purpose:</strong> <span id="detailPurpose"></span></div>
                 <div class="detail-row"><strong>Eligibility:</strong> <span id="detailEligibility"></span></div>
                 <div class="detail-row"><strong>Field Remarks:</strong> <span id="detailFieldRemarks"></span></div>
@@ -771,15 +782,48 @@
                         placeholder="10-digit mobile"></div>
                 <div class="form-group"><label>House Name</label><input type="text" id="houseName" required
                         placeholder="House name"></div>
-                <div class="form-group"><label>Purpose</label><textarea id="purpose" rows="2" required
-                        placeholder="Reason for inspection"></textarea></div>
+
+                <!-- Purpose Dropdown -->
+                <div class="form-group">
+                    <label>Purpose</label>
+                    <select id="purposeSelect" required onchange="handleDropdownOther('purposeSelect', 'purposeOther')">
+                        <option value="" disabled selected>Select Purpose of Visit</option>
+                        <option value="പെൻഷൻ അന്വേഷണം">പെൻഷൻ അന്വേഷണം</option>
+                        <option value="ലൈഫ് ഫീൽഡ് വിസിറ്റ്">ലൈഫ് ഫീൽഡ് വിസിറ്റ്</option>
+                        <option value="PMAY ഫീർഡ് വിസിറ്റ്">PMAY ഫീർഡ് വിസിറ്റ്</option>
+                        <option value="VB-G RAM G സൈറ്റ് വിസിറ്റ്">VB-G RAM G സൈറ്റ് വിസിറ്റ്</option>
+                        <option value="VB-G RAM G Individual Asset visit">VB-G RAM G Individual Asset visit</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <input type="text" id="purposeOther" placeholder="Enter purpose manually"
+                        style="display:none; margin-top: 8px;">
+                </div>
+
                 <div class="form-group"><label>Ward</label><input type="text" id="ward" required
                         placeholder="e.g. Ward 5"></div>
-                <div class="form-group"><label>Place</label><input type="text" id="place" required
+                <div class="form-group"><label>Place / Landmark</label><input type="text" id="place" required
                         placeholder="Location"></div>
                 <div class="form-group"><label>Route</label><input type="text" id="route" required
                         placeholder="Travel route"></div>
-                <div class="form-group"><label>Office Remarks</label><textarea id="remarks" rows="2"></textarea></div>
+
+                <!-- Repurposed Office Remarks: Priority / Cluster Route -->
+                <div class="form-group">
+                    <label><i class="fas fa-layer-group" style="margin-right: 4px; color: #2a7faa;"></i>Work Priority /
+                        Route Cluster</label>
+                    <select id="clusterSelect" required onchange="handleDropdownOther('clusterSelect', 'clusterOther')">
+                        <option value="" disabled selected>Assign Priority or Cluster</option>
+                        <option value="⚡ Priority 1 (Urgent)">⚡ Priority 1 (Urgent)</option>
+                        <option value="📍 Priority 2 (Normal)">📍 Priority 2 (Normal)</option>
+                        <option value="Cluster A (North Route)">Cluster A (North Route)</option>
+                        <option value="Cluster B (South Route)">Cluster B (South Route)</option>
+                        <option value="Cluster C (East Route)">Cluster C (East Route)</option>
+                        <option value="Cluster D (West Route)">Cluster D (West Route)</option>
+                        <option value="Others">Others (Custom Group / Note)</option>
+                    </select>
+                    <input type="text" id="clusterOther" placeholder="e.g. Near River Bridge / Cluster 5"
+                        style="display:none; margin-top: 8px;">
+                </div>
+
                 <div class="form-group"><label>Leaving Time</label><input type="datetime-local" id="leavingTime"
                         required></div>
                 <button type="submit" class="submit-btn" id="saveEntryBtn">Save Entry</button>
@@ -804,16 +848,49 @@
                         placeholder="10-digit mobile"></div>
                 <div class="form-group"><label>House Name</label><input type="text" id="editHouseName" required
                         placeholder="House name"></div>
-                <div class="form-group"><label>Purpose</label><textarea id="editPurpose" rows="2" required
-                        placeholder="Reason for inspection"></textarea></div>
+
+                <div class="form-group">
+                    <label>Purpose</label>
+                    <select id="editPurposeSelect" required
+                        onchange="handleDropdownOther('editPurposeSelect', 'editPurposeOther')">
+                        <option value="" disabled selected>Select Purpose of Visit</option>
+                        <option value="പെൻഷൻ അന്വേഷണം">പെൻഷൻ അന്വേഷണം</option>
+                        <option value="ലൈഫ് ഫീൽഡ് വിസിറ്റ്">ലൈഫ് ഫീൽഡ് വിസിറ്റ്</option>
+                        <option value="PMAY ഫീർഡ് വിസിറ്റ്">PMAY ഫീർഡ് വിസിറ്റ്</option>
+                        <option value="VB-G RAM G സൈറ്റ് വിസിറ്റ്">VB-G RAM G സൈറ്റ് വിസിറ്റ്</option>
+                        <option value="VB-G RAM G Individual Asset visit">VB-G RAM G Individual Asset visit</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <input type="text" id="editPurposeOther" placeholder="Enter purpose manually"
+                        style="display:none; margin-top: 8px;">
+                </div>
+
                 <div class="form-group"><label>Ward</label><input type="text" id="editWard" required
                         placeholder="e.g. Ward 5"></div>
-                <div class="form-group"><label>Place</label><input type="text" id="editPlace" required
+                <div class="form-group"><label>Place / Landmark</label><input type="text" id="editPlace" required
                         placeholder="Location"></div>
                 <div class="form-group"><label>Route</label><input type="text" id="editRoute" required
                         placeholder="Travel route"></div>
-                <div class="form-group"><label>Office Remarks</label><textarea id="editRemarks" rows="2"></textarea>
+
+                <!-- Edit Repurposed Office Remarks: Priority / Cluster Route -->
+                <div class="form-group">
+                    <label><i class="fas fa-layer-group" style="margin-right: 4px; color: #2a7faa;"></i>Work Priority /
+                        Route Cluster</label>
+                    <select id="editClusterSelect" required
+                        onchange="handleDropdownOther('editClusterSelect', 'editClusterOther')">
+                        <option value="" disabled selected>Assign Priority or Cluster</option>
+                        <option value="⚡ Priority 1 (Urgent)">⚡ Priority 1 (Urgent)</option>
+                        <option value="📍 Priority 2 (Normal)">📍 Priority 2 (Normal)</option>
+                        <option value="Cluster A (North Route)">Cluster A (North Route)</option>
+                        <option value="Cluster B (South Route)">Cluster B (South Route)</option>
+                        <option value="Cluster C (East Route)">Cluster C (East Route)</option>
+                        <option value="Cluster D (West Route)">Cluster D (West Route)</option>
+                        <option value="Others">Others (Custom Group / Note)</option>
+                    </select>
+                    <input type="text" id="editClusterOther" placeholder="e.g. Near River Bridge / Cluster 5"
+                        style="display:none; margin-top: 8px;">
                 </div>
+
                 <div class="form-group"><label>Leaving Time</label><input type="datetime-local" id="editLeavingTime"
                         required></div>
                 <button type="submit" class="submit-btn" id="editEntryBtn">Update Entry</button>
@@ -837,10 +914,45 @@
                     </button>
                     <input type="text" id="gpsDisplay" readonly placeholder="GPS Coordinates" required>
                 </div>
-                <div class="form-group"><label>Eligibility Status</label><input type="text" id="fieldEligibility"
-                        required placeholder="Eligible / Ineligible"></div>
-                <div class="form-group"><label>Field Remarks</label><textarea id="fieldRemarks" rows="2"
-                        required></textarea></div>
+
+                <!-- Manual Date & Clock Time Inputs -->
+                <div class="form-group">
+                    <label><i class="far fa-calendar-alt" style="margin-right: 4px; color: #2a7faa;"></i>Inspection
+                        Date</label>
+                    <input type="date" id="fieldInspectionDate" required>
+                </div>
+
+                <div class="form-group">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin: 0;"><i class="far fa-clock"
+                                style="margin-right: 4px; color: #2a7faa;"></i>Inspection Time</label>
+                        <button type="button" onclick="setNowTime()"
+                            style="background: none; border: none; color: #2a7faa; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                            Set Current Time
+                        </button>
+                    </div>
+                    <input type="time" id="fieldInspectionTime" step="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Eligibility Status</label>
+                    <select id="fieldEligibilitySelect" required
+                        onchange="handleDropdownOther('fieldEligibilitySelect', 'fieldEligibilityOther')">
+                        <option value="" disabled selected>Select Eligibility</option>
+                        <option value="Eligible">Eligible</option>
+                        <option value="Not Eligible">Not Eligible</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <input type="text" id="fieldEligibilityOther" placeholder="Enter eligibility manually"
+                        style="display:none; margin-top: 8px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Field Remarks</label>
+                    <textarea id="fieldRemarks" rows="2" required></textarea>
+                </div>
 
                 <div class="form-group">
                     <label>Site Photos (Optional, Max 4)</label>
@@ -868,6 +980,25 @@
         const CLOUD_NAME = "dpeuqcbtm";
         const UPLOAD_PRESET = "movement_register";
 
+        const STANDARD_PURPOSES = [
+            "പെൻഷൻ അന്വേഷണം",
+            "ലൈഫ് ഫീൽഡ് വിസിറ്റ്",
+            "PMAY ഫീർഡ് വിസിറ്റ്",
+            "VB-G RAM G സൈറ്റ് വിസിറ്റ്",
+            "VB-G RAM G Individual Asset visit"
+        ];
+
+        const STANDARD_ELIGIBILITIES = ["Eligible", "Not Eligible", "Processing"];
+
+        const STANDARD_CLUSTERS = [
+            "⚡ Priority 1 (Urgent)",
+            "📍 Priority 2 (Normal)",
+            "Cluster A (North Route)",
+            "Cluster B (South Route)",
+            "Cluster C (East Route)",
+            "Cluster D (West Route)"
+        ];
+
         let tasks = JSON.parse(localStorage.getItem('app_tasks')) || [];
         let selectedTaskId = null;
         let currentTab = 'active';
@@ -890,7 +1021,50 @@
             } catch (e) { return dateStr; }
         }
 
-        // ======== DETAILS MODAL & MAP INITIALIZATION ========
+        // Dropdown Handlers
+        function handleDropdownOther(selectId, inputId) {
+            const sel = document.getElementById(selectId);
+            const input = document.getElementById(inputId);
+            if (sel.value === 'Others') {
+                input.style.display = 'block';
+                input.required = true;
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function getDropdownValue(selectId, inputId) {
+            const sel = document.getElementById(selectId);
+            if (sel.value === 'Others') {
+                return document.getElementById(inputId).value.trim();
+            }
+            return sel.value;
+        }
+
+        function setDropdownValue(selectId, inputId, standardList, value) {
+            const sel = document.getElementById(selectId);
+            const input = document.getElementById(inputId);
+            if (!value) {
+                sel.value = '';
+                input.style.display = 'none';
+                input.value = '';
+                return;
+            }
+            if (standardList.includes(value)) {
+                sel.value = value;
+                input.style.display = 'none';
+                input.value = '';
+            } else {
+                sel.value = 'Others';
+                input.style.display = 'block';
+                input.value = value;
+                input.required = true;
+            }
+        }
+
+        // Details Modal
         function openDetailModal(id) {
             const task = tasks.find(x => String(x.id) === String(id));
             if (!task) return;
@@ -902,15 +1076,23 @@
             document.getElementById('detailLocation').textContent = `Ward ${task.ward || '-'}, ${task.place || '-'}`;
             document.getElementById('detailRoute').textContent = task.route || '-';
             document.getElementById('detailPurpose').textContent = task.purpose || '-';
+            document.getElementById('detailPriority').textContent = task.remarks || 'Standard Route';
             document.getElementById('detailEligibility').textContent = task.eligibility || 'Pending';
             document.getElementById('detailFieldRemarks').textContent = task.fieldRemarks || 'None recorded';
+
+            const pBadge = document.getElementById('detailPriorityBadge');
+            if (task.remarks) {
+                pBadge.textContent = task.remarks;
+                pBadge.style.display = 'inline-block';
+            } else {
+                pBadge.style.display = 'none';
+            }
 
             const lTime = task.leavingTime ? formatDateNice(task.leavingTime) : 'N/A';
             const sTime = task.siteTime ? formatDateNice(task.siteTime) : 'N/A';
             const rTime = task.returnTime ? formatDateNice(task.returnTime) : 'N/A';
             document.getElementById('detailTimes').textContent = `Left: ${lTime} | Visited: ${sTime} | Returned: ${rTime} (${task.duration || '-'})`;
 
-            // Photo Gallery Setup
             const galleryContainer = document.getElementById('detailPhotosContainer');
             galleryContainer.innerHTML = '';
             let photos = [];
@@ -931,7 +1113,6 @@
                 document.getElementById('detailPhotosSection').style.display = 'none';
             }
 
-            // PDF Setup
             const pdfSection = document.getElementById('detailPdfSection');
             if (task.pdfUrl && task.pdfUrl.trim() !== '') {
                 pdfSection.style.display = 'block';
@@ -940,7 +1121,6 @@
                 pdfSection.style.display = 'none';
             }
 
-            // Map Setup
             const mapSection = document.getElementById('detailMapSection');
             const gMapsBtn = document.getElementById('googleMapsLink');
 
@@ -959,7 +1139,6 @@
                 mapSection.style.display = 'block';
                 gMapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
-                // Leaflet requires container visibility to correctly calculate dimensions
                 setTimeout(() => {
                     if (!detailMapInstance) {
                         detailMapInstance = L.map('detailMap');
@@ -981,7 +1160,7 @@
             }
         }
 
-        // ======== ZOOMABLE LIGHTBOX CONTROLS (MOUSE + TOUCH + PINCH) ========
+        // Zoomable Lightbox
         let currentZoom = 1;
         let isPanning = false;
         let startX = 0, startY = 0;
@@ -1029,8 +1208,7 @@
             applyTransform();
         }
 
-        // --- MOUSE DRAG HANDLERS ---
-        lightboxImg.addEventListener('dragstart', (e) => e.preventDefault()); // Stop default image dragging
+        lightboxImg.addEventListener('dragstart', (e) => e.preventDefault());
 
         lightboxWrapper.addEventListener('mousedown', (e) => {
             if (currentZoom <= 1) return;
@@ -1054,14 +1232,12 @@
             lightboxImg.classList.remove('panning');
         });
 
-        // --- WHEEL ZOOM ---
         lightboxWrapper.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY < 0) zoomIn();
             else zoomOut();
         }, { passive: false });
 
-        // --- MOBILE TOUCH (PAN & PINCH-TO-ZOOM) ---
         function getTouchDistance(touches) {
             const dx = touches[0].clientX - touches[1].clientX;
             const dy = touches[0].clientY - touches[1].clientY;
@@ -1070,12 +1246,10 @@
 
         lightboxWrapper.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1 && currentZoom > 1) {
-                // Single finger pan
                 isPanning = true;
                 startX = e.touches[0].clientX - translateX;
                 startY = e.touches[0].clientY - translateY;
             } else if (e.touches.length === 2) {
-                // Double finger pinch
                 isPanning = false;
                 initialPinchDistance = getTouchDistance(e.touches);
                 initialZoom = currentZoom;
@@ -1098,9 +1272,7 @@
         }, { passive: false });
 
         lightboxWrapper.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) {
-                initialPinchDistance = 0;
-            }
+            if (e.touches.length < 2) initialPinchDistance = 0;
             if (e.touches.length === 0) {
                 isPanning = false;
                 if (currentZoom <= 1) {
@@ -1111,70 +1283,116 @@
             }
         });
 
-        // ======== SYNC ========
+        // Sync with Google Sheet
         async function syncWithSheet() {
             const syncBtn = document.getElementById('syncBtn');
             syncBtn.disabled = true;
             syncBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Syncing';
+
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getAllTasks`);
-                if (!res.ok) throw new Error('Failed');
-                const sheetData = await res.json();
+                if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+
+                const rawText = await res.text();
+                let sheetData;
+                try {
+                    sheetData = JSON.parse(rawText);
+                } catch (jsonErr) {
+                    console.error("Non-JSON received:", rawText);
+                    throw new Error("Received HTML/error from server instead of data. Check Apps Script permissions.");
+                }
+
+                if (sheetData.status === "error") {
+                    throw new Error(sheetData.message);
+                }
+
                 if (!Array.isArray(sheetData) || sheetData.length === 0) {
                     tasks = [];
                     localStorage.removeItem('app_tasks');
-                    alert("Sheet is empty. Local cleared.");
-                    updateWardDropdown(); renderList();
+                    alert("Sheet is empty. Local storage cleared.");
+                    updateFilterDropdowns();
+                    renderList();
                     return;
                 }
-                tasks = sheetData.map(row => ({
-                    id: String(row[0]), fileNumber: row[1], name: row[2], houseName: row[3], purpose: row[4],
-                    ward: row[5], place: row[6], route: row[7], remarks: row[8], eligibility: row[9] || "Pending Verification",
-                    leavingTime: row[10], siteTime: row[11], siteLocation: row[12], fieldRemarks: row[13],
-                    photoUrls: row[14], pdfUrl: row[15], returnTime: row[16], duration: row[17],
-                    status: row[18] || "Pending Field Visit", mobile: row[19] || ""
-                }));
+
+                // Filter out empty rows and map cleanly
+                tasks = sheetData
+                    .filter(row => row && row.length >= 10 && row[0] !== "")
+                    .map(row => ({
+                        id: String(row[0] || ''),
+                        fileNumber: String(row[1] || ''),
+                        name: String(row[2] || ''),
+                        houseName: String(row[3] || ''),
+                        purpose: String(row[4] || ''),
+                        ward: String(row[5] || ''),
+                        place: String(row[6] || ''),
+                        route: String(row[7] || ''),
+                        remarks: String(row[8] || ''),
+                        eligibility: String(row[9] || "Pending Verification"),
+                        leavingTime: String(row[10] || ''),
+                        siteTime: String(row[11] || ''),
+                        siteLocation: String(row[12] || ''),
+                        fieldRemarks: String(row[13] || ''),
+                        photoUrls: String(row[14] || ''),
+                        pdfUrl: String(row[15] || ''),
+                        returnTime: String(row[16] || ''),
+                        duration: String(row[17] || ''),
+                        status: String(row[18] || "Pending Field Visit"),
+                        mobile: String(row[19] || '')
+                    }));
+
                 localStorage.setItem('app_tasks', JSON.stringify(tasks));
-                updateWardDropdown(); renderList();
+                updateFilterDropdowns();
+                renderList();
                 alert("✅ Synced successfully!");
-            } catch (e) { alert("Sync failed. Check connection."); }
-            finally { syncBtn.disabled = false; syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync'; }
+            } catch (e) {
+                console.error("Sync Error:", e);
+                alert("Sync failed: " + e.message);
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync';
+            }
         }
 
-        // ======== CREATE ========
+        // Create Entry
         document.getElementById('createForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('saveEntryBtn');
             btn.disabled = true; btn.innerText = 'Saving...';
+
             const task = {
                 action: "create",
                 fileNumber: document.getElementById('fileNumber').value,
                 name: document.getElementById('name').value,
                 mobile: document.getElementById('mobile').value,
                 houseName: document.getElementById('houseName').value,
-                purpose: document.getElementById('purpose').value,
+                purpose: getDropdownValue('purposeSelect', 'purposeOther'),
                 ward: document.getElementById('ward').value,
                 place: document.getElementById('place').value,
                 route: document.getElementById('route').value,
-                remarks: document.getElementById('remarks').value,
+                remarks: getDropdownValue('clusterSelect', 'clusterOther'),
                 eligibility: "Pending Verification",
                 leavingTime: document.getElementById('leavingTime').value,
                 status: "Pending Field Visit"
             };
+
             try {
                 const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(task) });
                 const data = await res.json();
                 task.id = String(data.id);
             } catch (e) { task.id = "ID-" + Date.now().toString().slice(-4); }
+
             tasks.push(task);
             localStorage.setItem('app_tasks', JSON.stringify(tasks));
-            updateWardDropdown(); renderList();
+            updateFilterDropdowns(); renderList();
             closeModal('createModal');
             this.reset();
+            handleDropdownOther('purposeSelect', 'purposeOther');
+            handleDropdownOther('clusterSelect', 'clusterOther');
             btn.disabled = false; btn.innerText = 'Save Entry';
         });
 
-        // ======== EDIT ========
+        // Edit Entry
         function openEditForm(id) {
             const task = tasks.find(x => String(x.id) === String(id));
             if (!task) return;
@@ -1183,11 +1401,12 @@
             document.getElementById('editName').value = task.name || '';
             document.getElementById('editMobile').value = task.mobile || '';
             document.getElementById('editHouseName').value = task.houseName || '';
-            document.getElementById('editPurpose').value = task.purpose || '';
+            setDropdownValue('editPurposeSelect', 'editPurposeOther', STANDARD_PURPOSES, task.purpose || '');
             document.getElementById('editWard').value = task.ward || '';
             document.getElementById('editPlace').value = task.place || '';
             document.getElementById('editRoute').value = task.route || '';
-            document.getElementById('editRemarks').value = task.remarks || '';
+            setDropdownValue('editClusterSelect', 'editClusterOther', STANDARD_CLUSTERS, task.remarks || '');
+
             if (task.leavingTime) {
                 try {
                     const d = new Date(task.leavingTime);
@@ -1213,11 +1432,11 @@
                 name: document.getElementById('editName').value,
                 mobile: document.getElementById('editMobile').value,
                 houseName: document.getElementById('editHouseName').value,
-                purpose: document.getElementById('editPurpose').value,
+                purpose: getDropdownValue('editPurposeSelect', 'editPurposeOther'),
                 ward: document.getElementById('editWard').value,
                 place: document.getElementById('editPlace').value,
                 route: document.getElementById('editRoute').value,
-                remarks: document.getElementById('editRemarks').value,
+                remarks: getDropdownValue('editClusterSelect', 'editClusterOther'),
                 leavingTime: document.getElementById('editLeavingTime').value,
             };
 
@@ -1226,14 +1445,14 @@
                 await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
                 tasks[taskIndex] = updatedTask;
                 localStorage.setItem('app_tasks', JSON.stringify(tasks));
-                updateWardDropdown(); renderList();
+                updateFilterDropdowns(); renderList();
                 closeModal('editModal');
                 alert("✅ Visit updated!");
             } catch (e) { alert("Update failed. Check connection."); }
             finally { btn.disabled = false; btn.innerText = 'Update Entry'; }
         });
 
-        // ======== PHOTO SELECTION ========
+        // Photo Upload Handling
         function handlePhotoSelect(event) {
             const files = Array.from(event.target.files);
             if (selectedPhotos.length + files.length > 4) {
@@ -1267,13 +1486,22 @@
                 container.appendChild(card);
             });
         }
-
+        // Quick helper to fill current time if desired
+        function setNowTime() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            document.getElementById('fieldInspectionDate').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+            document.getElementById('fieldInspectionTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        }
+        // Pre-fill inputs when opening Field Inspection modal
         function openFieldForm(id) {
             selectedTaskId = String(id);
             const task = tasks.find(x => String(x.id) === selectedTaskId);
-            if (task && task.eligibility) {
-                document.getElementById('fieldEligibility').value = task.eligibility !== "Pending Verification" ? task.eligibility : '';
-            }
+            setDropdownValue('fieldEligibilitySelect', 'fieldEligibilityOther', STANDARD_ELIGIBILITIES, task ? task.eligibility : '');
+
+            // Set today's date and current time by default so you can adjust with the clock
+            setNowTime();
+
             selectedPhotos = [];
             renderPhotoPreviews();
             openModal('fieldModal');
@@ -1321,6 +1549,7 @@
             return data.secure_url;
         }
 
+        // In fieldForm submit listener:
         document.getElementById('fieldForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const pdf = document.getElementById('pdfFile').files[0] || null;
@@ -1343,11 +1572,16 @@
                     pdfUrl = await uploadToCloudinary(pdf);
                 }
 
+                // Read manual date and clock time
+                const manualDate = document.getElementById('fieldInspectionDate').value;
+                const manualTime = document.getElementById('fieldInspectionTime').value;
+                const combinedSiteTime = `${manualDate} ${manualTime}`;
+
                 const fieldData = {
                     action: "updateField",
                     id: selectedTaskId,
-                    eligibility: document.getElementById('fieldEligibility').value,
-                    siteTime: new Date().toISOString(),
+                    eligibility: getDropdownValue('fieldEligibilitySelect', 'fieldEligibilityOther'),
+                    siteTime: combinedSiteTime, // Sends your chosen manual date and time
                     siteLocation: document.getElementById('gpsDisplay').value,
                     fieldRemarks: document.getElementById('fieldRemarks').value,
                     photoUrls: photoUrls.join(", "),
@@ -1364,32 +1598,91 @@
                 renderPhotoPreviews();
                 closeModal('fieldModal');
                 this.reset();
-                updateWardDropdown(); renderList();
-            } catch (err) { alert("Upload error. Check connection."); }
-            finally { btn.innerText = "Upload & Save"; btn.disabled = false; }
+                handleDropdownOther('fieldEligibilitySelect', 'fieldEligibilityOther');
+                updateFilterDropdowns(); renderList();
+            } catch (err) {
+                alert("Upload error. Check connection.");
+            } finally {
+                btn.innerText = "Upload & Save";
+                btn.disabled = false;
+            }
         });
 
-        // ======== COMPLETE ========
+        // Complete Task
+        // Complete Task (Reliable with Error Verification)
+        // Complete Task with hh:mm duration format
         async function completeTask(id) {
-            let t = tasks.find(x => String(x.id) === String(id));
-            if (!t) return;
+            let t = tasks.find(x => String(x.id).trim() === String(id).trim());
+            if (!t) {
+                alert("Task not found locally.");
+                return;
+            }
+
+            // Parse departure time safely
+            let departureTime;
+            if (t.leavingTime) {
+                let cleanLeaving = String(t.leavingTime).replace(' ', 'T');
+                departureTime = new Date(cleanLeaving);
+            }
+
             const returnTime = new Date();
-            const departureTime = new Date(t.leavingTime);
-            const durationMins = Math.round((returnTime - departureTime) / 60000);
-            const payload = { action: "complete", id, returnTime: returnTime.toISOString(), duration: `${durationMins} mins` };
-            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-            t.status = "Completed"; t.returnTime = payload.returnTime; t.duration = payload.duration;
-            localStorage.setItem('app_tasks', JSON.stringify(tasks));
-            updateWardDropdown(); renderList();
+            let durationFormatted = "00:00";
+
+            if (departureTime && !isNaN(departureTime.getTime())) {
+                let diffMs = returnTime.getTime() - departureTime.getTime();
+                if (diffMs < 0) diffMs = 0;
+
+                let totalMins = Math.floor(diffMs / 60000);
+                let hours = Math.floor(totalMins / 60);
+                let mins = totalMins % 60;
+
+                // Zero-pad into hh:mm format (e.g., 01:25 or 00:45)
+                durationFormatted = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            }
+
+            const payload = {
+                action: "complete",
+                id: String(id).trim(),
+                returnTime: returnTime.toISOString(),
+                duration: durationFormatted
+            };
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const result = await res.json();
+
+                if (result.status !== "success") {
+                    throw new Error(result.message || "Failed to update row in Google Sheet");
+                }
+
+                // Update local memory and re-render
+                t.status = "Completed";
+                t.returnTime = payload.returnTime;
+                t.duration = payload.duration;
+                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+
+                updateFilterDropdowns();
+                renderList();
+                alert(`✅ Marked complete! Duration: ${durationFormatted}`);
+
+            } catch (err) {
+                console.error("Complete Task Error:", err);
+                alert("⚠️ Could not complete task: " + err.message);
+            }
         }
 
-        // ======== TAB & RENDERING ========
+        // Tabs & Filtering
         function switchTab(tab) {
             currentTab = tab;
             document.getElementById('tabActive').classList.toggle('active', tab === 'active');
             document.getElementById('tabCompleted').classList.toggle('active', tab === 'completed');
             document.getElementById('searchInput').value = '';
-            updateWardDropdown(); renderList();
+            updateFilterDropdowns(); renderList();
         }
 
         function renderList() {
@@ -1397,6 +1690,7 @@
             container.innerHTML = '';
             const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
             const ward = document.getElementById('wardFilter')?.value || 'ALL';
+            const cluster = document.getElementById('clusterFilter')?.value || 'ALL';
 
             let filtered = tasks.filter(t => {
                 if (currentTab === 'completed') return t.status === 'Completed';
@@ -1407,9 +1701,13 @@
                 filtered = filtered.filter(t => String(t.ward || '').trim() === ward);
             }
 
+            if (cluster !== 'ALL') {
+                filtered = filtered.filter(t => String(t.remarks || '').trim() === cluster);
+            }
+
             if (search) {
                 filtered = filtered.filter(t => {
-                    return [t.name, t.mobile, t.fileNumber, t.houseName, t.place, t.purpose]
+                    return [t.name, t.mobile, t.fileNumber, t.houseName, t.place, t.purpose, t.remarks]
                         .some(val => String(val || '').toLowerCase().includes(search));
                 });
             }
@@ -1419,7 +1717,14 @@
                 return;
             }
 
-            filtered.slice().reverse().forEach(t => {
+            // Grouping: Sort by cluster/priority first so nearest destinations stay grouped together
+            filtered.sort((a, b) => {
+                const remA = a.remarks || 'ZZZ';
+                const remB = b.remarks || 'ZZZ';
+                return remA.localeCompare(remB);
+            });
+
+            filtered.forEach(t => {
                 let cardClass = 'pending', badgeClass = 'badge-pending';
                 if (t.status === 'On Field / In Progress') { cardClass = 'progress'; badgeClass = 'badge-progress'; }
                 if (t.status === 'Completed') { cardClass = 'completed clickable'; badgeClass = 'badge-completed'; }
@@ -1438,16 +1743,27 @@
                 const isCompleted = t.status === 'Completed';
                 const cardOnClick = isCompleted ? `onclick="openDetailModal('${t.id}')"` : '';
 
+                let clusterBadge = '';
+                if (t.remarks) {
+                    const isUrgent = t.remarks.includes('Priority 1');
+                    const badgeType = isUrgent ? 'badge-priority' : 'badge-cluster';
+                    clusterBadge = `<span class="badge ${badgeType}"><i class="fas fa-layer-group" style="margin-right:3px;"></i>${t.remarks}</span>`;
+                }
+
                 container.innerHTML += `
     <div class="visit-card ${cardClass}" ${cardOnClick}>
         <div class="card-header">
             <span class="file-no"><i class="far fa-file-alt" style="margin-right:6px; opacity:0.6;"></i>${t.fileNumber || ''}</span>
-            <span class="badge ${badgeClass}">${t.status || ''}</span>
+            <div class="badges-group">
+                ${clusterBadge}
+                <span class="badge ${badgeClass}">${t.status || ''}</span>
+            </div>
         </div>
         <div class="purpose-box"><i class="fas fa-bullseye" style="margin-right:8px; opacity:0.6;"></i>${t.purpose || ''}</div>
         <div class="card-row"><strong>Name:</strong> ${t.name || ''} (${t.houseName || ''})</div>
         <div class="card-row"><strong>Mobile:</strong> ${t.mobile || 'N/A'} ${phoneMarkup}</div>
         <div class="card-row"><strong>Location:</strong> Ward ${t.ward || ''}, ${t.place || ''}</div>
+        <div class="card-row"><strong>Route:</strong> ${t.route || 'Not specified'}</div>
         <div class="card-row"><strong>Eligibility:</strong> ${t.eligibility || 'Pending'}</div>
         ${t.duration ? `<div class="card-row"><strong>Duration:</strong> ${t.duration}</div>` : ''}
         
@@ -1461,25 +1777,65 @@
             });
         }
 
-        function updateWardDropdown() {
-            const sel = document.getElementById('wardFilter');
-            const currentVal = sel.value;
+        function updateFilterDropdowns() {
+            const wardSel = document.getElementById('wardFilter');
+            const clusterSel = document.getElementById('clusterFilter');
+            const currentWard = wardSel.value;
+            const currentCluster = clusterSel.value;
+
             const activeTasks = tasks.filter(t => {
                 if (currentTab === 'completed') return t.status === 'Completed';
                 return t.status !== 'Completed';
             });
+
+            // Populate Wards
             const wards = [...new Set(activeTasks.map(t => String(t.ward).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            sel.innerHTML = '<option value="ALL">All Wards</option>';
+            wardSel.innerHTML = '<option value="ALL">All Wards</option>';
             wards.forEach(w => {
                 const opt = document.createElement('option');
                 opt.value = w; opt.textContent = `Ward ${w}`;
-                sel.appendChild(opt);
+                wardSel.appendChild(opt);
             });
-            if (wards.includes(currentVal)) sel.value = currentVal;
-            else sel.value = 'ALL';
+            if (wards.includes(currentWard)) wardSel.value = currentWard;
+            else wardSel.value = 'ALL';
+
+            // Populate Clusters / Priorities
+            const clusters = [...new Set(activeTasks.map(t => String(t.remarks).trim()).filter(Boolean))].sort();
+            clusterSel.innerHTML = '<option value="ALL">All Clusters / Priority</option>';
+            clusters.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                clusterSel.appendChild(opt);
+            });
+            if (clusters.includes(currentCluster)) clusterSel.value = currentCluster;
+            else clusterSel.value = 'ALL';
+        }
+        async function exportTourDiary() {
+            const btn = document.getElementById('tourDiaryBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Generating...';
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "generateTourDiary" })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert("✅ " + result.message);
+                } else {
+                    alert("⚠️ " + (result.message || "Failed to update Tour Diary"));
+                }
+            } catch (err) {
+                alert("Error generating Tour Diary. Check connection or Apps Script permissions.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
-        updateWardDropdown();
+        updateFilterDropdowns();
         renderList();
     </script>
 </body>
