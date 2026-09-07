@@ -1291,54 +1291,44 @@
 
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getAllTasks`);
-                if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const rawText = await res.text();
-                let sheetData;
-                try {
-                    sheetData = JSON.parse(rawText);
-                } catch (jsonErr) {
-                    console.error("Non-JSON received:", rawText);
-                    throw new Error("Received HTML/error from server instead of data. Check Apps Script permissions.");
-                }
+                let sheetData = JSON.parse(rawText);
 
-                if (sheetData.status === "error") {
-                    throw new Error(sheetData.message);
-                }
-
+                if (sheetData.status === "error") throw new Error(sheetData.message);
                 if (!Array.isArray(sheetData) || sheetData.length === 0) {
                     tasks = [];
                     localStorage.removeItem('app_tasks');
                     alert("Sheet is empty. Local storage cleared.");
-                    updateFilterDropdowns();
-                    renderList();
+                    updateFilterDropdowns(); renderList();
                     return;
                 }
 
-                // Filter out empty rows and map cleanly
+                // Full 21-column mapping
                 tasks = sheetData
-                    .filter(row => row && row.length >= 10 && row[0] !== "")
+                    .filter(row => row && row.length >= 10 && String(row[0] || '').trim() !== "")
                     .map(row => ({
-                        id: String(row[0] || ''),
-                        fileNumber: String(row[1] || ''),
-                        name: String(row[2] || ''),
-                        houseName: String(row[3] || ''),
-                        purpose: String(row[4] || ''),
-                        ward: String(row[5] || ''),
-                        place: String(row[6] || ''),
-                        route: String(row[7] || ''),
-                        remarks: String(row[8] || ''),
-                        eligibility: String(row[9] || "Pending Verification"),
-                        leavingTime: String(row[10] || ''),
-                        siteTime: String(row[11] || ''),
-                        siteLocation: String(row[12] || ''),
-                        fieldRemarks: String(row[13] || ''),
-                        photoUrls: String(row[14] || ''),
-                        pdfUrl: String(row[15] || ''),
-                        returnTime: String(row[16] || ''),
-                        duration: String(row[17] || ''),
-                        status: String(row[18] || "Pending Field Visit"),
-                        mobile: String(row[19] || '')
+                        id: String(row[0] || '').trim(),
+                        fileNumber: String(row[1] || '').trim(),
+                        name: String(row[2] || '').trim(),
+                        houseName: String(row[3] || '').trim(),
+                        purpose: String(row[4] || '').trim(),
+                        ward: String(row[5] || '').trim(),
+                        place: String(row[6] || '').trim(),
+                        route: String(row[7] || '').trim(),
+                        remarks: String(row[8] || '').trim(),
+                        eligibility: String(row[9] || "Pending Verification").trim(),
+                        leavingTime: String(row[10] || '').trim(),
+                        siteTime: (row[11] && row[12]) ? (String(row[11]).trim() + ' ' + String(row[12]).trim()) : String(row[11] || '').trim(),
+                        siteLocation: String(row[13] || '').trim(),
+                        fieldRemarks: String(row[14] || '').trim(),
+                        photoUrls: String(row[15] || '').trim(),
+                        pdfUrl: String(row[16] || '').trim(),
+                        returnTime: String(row[17] || '').trim(),
+                        duration: String(row[18] || '').trim(),
+                        status: String(row[19] || "Pending Field Visit").trim(),
+                        mobile: String(row[20] || '').trim()
                     }));
 
                 localStorage.setItem('app_tasks', JSON.stringify(tasks));
@@ -1354,14 +1344,17 @@
             }
         }
 
-        // Create Entry
         document.getElementById('createForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('saveEntryBtn');
             btn.disabled = true; btn.innerText = 'Saving...';
 
+            // Pre-generate guaranteed unique ID so task.id is never null or undefined
+            const uniqueId = "ID-" + Date.now();
+
             const task = {
                 action: "create",
+                id: uniqueId,
                 fileNumber: document.getElementById('fileNumber').value,
                 name: document.getElementById('name').value,
                 mobile: document.getElementById('mobile').value,
@@ -1379,17 +1372,23 @@
             try {
                 const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(task) });
                 const data = await res.json();
-                task.id = String(data.id);
-            } catch (e) { task.id = "ID-" + Date.now().toString().slice(-4); }
+                if (data && data.id) {
+                    task.id = String(data.id);
+                }
+            } catch (e) {
+                console.warn("Offline create, stored with ID:", uniqueId);
+            }
 
             tasks.push(task);
             localStorage.setItem('app_tasks', JSON.stringify(tasks));
-            updateFilterDropdowns(); renderList();
+            updateFilterDropdowns();
+            renderList();
             closeModal('createModal');
             this.reset();
             handleDropdownOther('purposeSelect', 'purposeOther');
             handleDropdownOther('clusterSelect', 'clusterOther');
-            btn.disabled = false; btn.innerText = 'Save Entry';
+            btn.disabled = false;
+            btn.innerText = 'Save Entry';
         });
 
         // Edit Entry
@@ -1552,6 +1551,11 @@
         // In fieldForm submit listener:
         document.getElementById('fieldForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+            if (!selectedTaskId || String(selectedTaskId).trim() === "null" || String(selectedTaskId).trim() === "undefined") {
+                alert("Error: No valid task ID selected.");
+                return;
+            }
+
             const pdf = document.getElementById('pdfFile').files[0] || null;
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true;
@@ -1572,25 +1576,31 @@
                     pdfUrl = await uploadToCloudinary(pdf);
                 }
 
-                // Read manual date and clock time
                 const manualDate = document.getElementById('fieldInspectionDate').value;
                 const manualTime = document.getElementById('fieldInspectionTime').value;
                 const combinedSiteTime = `${manualDate} ${manualTime}`;
 
                 const fieldData = {
                     action: "updateField",
-                    id: selectedTaskId,
+                    id: String(selectedTaskId).trim(),
                     eligibility: getDropdownValue('fieldEligibilitySelect', 'fieldEligibilityOther'),
-                    siteTime: combinedSiteTime, // Sends your chosen manual date and time
+                    siteTime: combinedSiteTime,
                     siteLocation: document.getElementById('gpsDisplay').value,
                     fieldRemarks: document.getElementById('fieldRemarks').value,
                     photoUrls: photoUrls.join(", "),
                     pdfUrl: pdfUrl
                 };
 
-                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(fieldData) });
-                let t = tasks.find(x => String(x.id) === selectedTaskId);
-                if (t) Object.assign(t, fieldData, { status: "On Field / In Progress" });
+                const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(fieldData) });
+                const result = await res.json();
+                if (result.status !== "success") {
+                    throw new Error(result.message || "Failed to update field inspection");
+                }
+
+                let t = tasks.find(x => String(x.id).trim() === String(selectedTaskId).trim());
+                if (t) {
+                    Object.assign(t, fieldData, { status: "On Field / In Progress" });
+                }
                 localStorage.setItem('app_tasks', JSON.stringify(tasks));
                 alert("✅ Field data saved!");
 
@@ -1599,9 +1609,10 @@
                 closeModal('fieldModal');
                 this.reset();
                 handleDropdownOther('fieldEligibilitySelect', 'fieldEligibilityOther');
-                updateFilterDropdowns(); renderList();
+                updateFilterDropdowns();
+                renderList();
             } catch (err) {
-                alert("Upload error. Check connection.");
+                alert("Upload error: " + err.message);
             } finally {
                 btn.innerText = "Upload & Save";
                 btn.disabled = false;
@@ -1612,13 +1623,17 @@
         // Complete Task (Reliable with Error Verification)
         // Complete Task with hh:mm duration format
         async function completeTask(id) {
+            if (!id || String(id).trim() === "null" || String(id).trim() === "undefined") {
+                alert("Error: Invalid Task ID.");
+                return;
+            }
+
             let t = tasks.find(x => String(x.id).trim() === String(id).trim());
             if (!t) {
                 alert("Task not found locally.");
                 return;
             }
 
-            // Parse departure time safely
             let departureTime;
             if (t.leavingTime) {
                 let cleanLeaving = String(t.leavingTime).replace(' ', 'T');
@@ -1635,8 +1650,6 @@
                 let totalMins = Math.floor(diffMs / 60000);
                 let hours = Math.floor(totalMins / 60);
                 let mins = totalMins % 60;
-
-                // Zero-pad into hh:mm format (e.g., 01:25 or 00:45)
                 durationFormatted = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
             }
 
@@ -1660,7 +1673,6 @@
                     throw new Error(result.message || "Failed to update row in Google Sheet");
                 }
 
-                // Update local memory and re-render
                 t.status = "Completed";
                 t.returnTime = payload.returnTime;
                 t.duration = payload.duration;
