@@ -979,6 +979,39 @@
         </div>
     </div>
 
+    <!-- DEPARTURE MODAL (Manual Out-Time Picker) -->
+    <div class="modal" id="departModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-walking" style="margin-right: 10px; color: #16a085;"></i>Departure Time</h3>
+                <button class="close-btn" onclick="closeModal('departModal')">&times;</button>
+            </div>
+            <form id="departForm">
+                <input type="hidden" id="departTaskId">
+                
+                <div class="form-group">
+                    <label><i class="far fa-calendar-alt" style="margin-right: 4px; color: #2a7faa;"></i>Departure Date</label>
+                    <input type="date" id="departDate" required>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin: 0;"><i class="far fa-clock" style="margin-right: 4px; color: #2a7faa;"></i>Leaving Time</label>
+                        <button type="button" onclick="setNowDepartTime()"
+                            style="background: none; border: none; color: #2a7faa; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                            Set Current Time
+                        </button>
+                    </div>
+                    <input type="time" id="departTime" step="1" required>
+                </div>
+
+                <button type="submit" class="submit-btn" id="confirmDepartBtn" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="fas fa-check" style="margin-right: 6px;"></i> Confirm Departure
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- FIELD INSPECTION MODAL -->
     <div class="modal" id="fieldModal">
         <div class="modal-content">
@@ -1673,36 +1706,44 @@
             }
         });
 
-        // 1. PUNCH OUT / START JOURNEY (With Click & Ripple Animation)
-        async function departTask(id, event) {
+        // Departure Modal Helpers
+        function setNowDepartTime() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            document.getElementById('departDate').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+            document.getElementById('departTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        }
+
+        function openDepartModal(id, event) {
             if (event) {
                 event.stopPropagation();
                 triggerRipple(event, event.currentTarget);
             }
-
-            const btn = event ? event.currentTarget : null;
-            let originalHtml = '';
-            if (btn) {
-                btn.disabled = true;
-                originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-circle-notch btn-spinner"></i> Departing...';
-                btn.style.filter = 'brightness(0.9)';
-            }
-
             if (!id || String(id).trim() === "null") {
-                alert("Invalid Task ID.");
-                if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
-                return;
+                alert("Invalid Task ID."); return;
             }
+            document.getElementById('departTaskId').value = String(id).trim();
+            setNowDepartTime();
+            openModal('departModal');
+        }
 
-            let t = tasks.find(x => String(x.id).trim() === String(id).trim());
-            if (!t) return;
+        // 1. SUBMIT MANUAL DEPARTURE TIME
+        document.getElementById('departForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('confirmDepartBtn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch btn-spinner"></i> Saving...';
 
-            const now = new Date();
+            const taskId = document.getElementById('departTaskId').value;
+            const depDate = document.getElementById('departDate').value;
+            const depTime = document.getElementById('departTime').value;
+            const manualLeavingTime = `${depDate} ${depTime}`;
+
             const payload = {
                 action: "depart",
-                id: String(id).trim(),
-                leavingTime: now.toISOString()
+                id: taskId,
+                leavingTime: manualLeavingTime
             };
 
             try {
@@ -1710,23 +1751,30 @@
                 const result = await res.json();
                 if (result.status !== "success") throw new Error(result.message);
 
-                if (btn) btn.innerHTML = '<i class="fas fa-check"></i> Out!';
+                btn.innerHTML = '<i class="fas fa-check"></i> Recorded!';
 
                 setTimeout(() => {
-                    t.leavingTime = now.toISOString();
-                    t.status = "Pending Field Visit";
+                    let t = tasks.find(x => String(x.id).trim() === taskId);
+                    if (t) {
+                        t.leavingTime = manualLeavingTime;
+                        t.status = "Pending Field Visit";
+                    }
                     localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                    closeModal('departModal');
                     updateFilterDropdowns();
                     renderList();
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
                 }, 350);
 
             } catch (err) {
                 alert("Could not record departure: " + err.message);
-                if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; btn.style.filter = 'none'; }
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
-        }
+        });
 
-        // 2. COMPLETE TASK (With Click, Duration, and Success Animation)
+        // 2. COMPLETE TASK (Formatted as "X hours Y minutes")
         async function completeTask(id, event) {
             if (event) {
                 event.stopPropagation();
@@ -1757,14 +1805,22 @@
             }
 
             const returnTime = new Date();
-            let durationFormatted = "00:00";
+            let durationFormatted = "0 minutes";
 
             if (departureTime && !isNaN(departureTime.getTime())) {
                 let diffMs = Math.max(0, returnTime.getTime() - departureTime.getTime());
                 let totalMins = Math.floor(diffMs / 60000);
                 let hours = Math.floor(totalMins / 60);
                 let mins = totalMins % 60;
-                durationFormatted = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+
+                let parts = [];
+                if (hours > 0) {
+                    parts.push(hours === 1 ? `${hours} hour` : `${hours} hours`);
+                }
+                if (mins > 0 || hours === 0) {
+                    parts.push(mins === 1 ? `${mins} minute` : `${mins} minutes`);
+                }
+                durationFormatted = parts.join(' ');
             }
 
             const payload = {
@@ -1792,8 +1848,10 @@
                     t.returnTime = payload.returnTime;
                     t.duration = payload.duration;
                     localStorage.setItem('app_tasks', JSON.stringify(tasks));
+
                     updateFilterDropdowns();
                     renderList();
+                    alert(`✅ Completed! Duration: ${durationFormatted}`);
                 }, 500);
 
             } catch (err) {
@@ -1915,7 +1973,7 @@
         
         <div class="card-actions" onclick="event.stopPropagation()">
             ${!isCompleted ? `<button class="btn-action btn-edit" onclick="openEditForm('${t.id}')"><i class="fas fa-pencil-alt"></i> Edit</button>` : ''}
-            ${isQueue ? `<button class="btn-action btn-depart" onclick="departTask('${t.id}', event)"><i class="fas fa-walking"></i> Start Journey</button>` : ''}
+            ${isQueue ? `<button class="btn-action btn-depart" onclick="openDepartModal('${t.id}', event)"><i class="fas fa-walking"></i> Start Journey</button>` : ''}
             ${isPending ? `<button class="btn-action btn-inspect" onclick="openFieldForm('${t.id}')"><i class="fas fa-search-location"></i> Inspect</button>` : ''}
             ${isInProgress ? `<button class="btn-action btn-complete" onclick="completeTask('${t.id}', event)"><i class="fas fa-check-circle"></i> Complete</button>` : ''}
             ${isCompleted ? `<button class="btn-action btn-details" onclick="openDetailModal('${t.id}')"><i class="fas fa-eye"></i> View Details</button>` : ''}
