@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Panchayat · Field Register</title>
-    <!-- Font Awesome 6 (free) -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Font (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,7 +53,7 @@
 
         .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
@@ -63,9 +63,9 @@
             -webkit-backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 40px;
-            padding: 10px 16px;
+            padding: 10px 14px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: #1f3a4b;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
             transition: all 0.2s ease;
@@ -91,11 +91,12 @@
             color: white;
         }
 
+        /* 3-Tab Container */
         .tab-container {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin: 12px 0 18px;
-            background: rgba(230, 238, 245, 0.5);
+            background: rgba(230, 238, 245, 0.6);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             padding: 6px;
@@ -105,16 +106,21 @@
 
         .tab-btn {
             flex: 1;
-            padding: 12px 6px;
+            padding: 10px 4px;
             border: none;
             background: transparent;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             border-radius: 40px;
             color: #4a5f6e;
             transition: all 0.2s ease;
             cursor: pointer;
+            text-align: center;
             letter-spacing: -0.2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         .tab-btn.active {
@@ -122,6 +128,19 @@
             color: #0b2a3b;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
             font-weight: 700;
+        }
+
+        .tab-counter {
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.06);
+            color: inherit;
+        }
+
+        .tab-btn.active .tab-counter {
+            background: #1f3a4b;
+            color: white;
         }
 
         .filter-container {
@@ -150,7 +169,7 @@
         }
 
         .visit-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border-radius: 28px;
@@ -169,6 +188,10 @@
         .visit-card.clickable:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 28px rgba(0, 10, 30, 0.08);
+        }
+
+        .visit-card.queue {
+            border-left-color: #636e72;
         }
 
         .visit-card.pending {
@@ -206,13 +229,18 @@
 
         .badge {
             font-size: 11px;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 40px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             background: #eef3f7;
             color: #2b4d62;
+        }
+
+        .badge-queue {
+            background: #eceff1;
+            color: #455a64;
         }
 
         .badge-pending {
@@ -280,12 +308,12 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 40px;
             color: white;
             text-decoration: none;
-            font-size: 15px;
+            font-size: 14px;
             transition: 0.15s;
             background: rgba(0, 0, 0, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -305,14 +333,14 @@
 
         .card-actions {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-top: 16px;
             flex-wrap: wrap;
         }
 
         .btn-action {
             flex: 1 1 auto;
-            padding: 14px 18px;
+            padding: 13px 16px;
             border: none;
             border-radius: 40px;
             font-weight: 700;
@@ -322,9 +350,26 @@
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-            transition: 0.15s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
             letter-spacing: -0.2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .btn-depart {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-depart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
         }
 
         .btn-inspect {
@@ -332,7 +377,13 @@
         }
 
         .btn-complete {
-            background: linear-gradient(145deg, #e0884e, #c96d38);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+        }
+
+        .btn-complete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
         }
 
         .btn-edit {
@@ -341,6 +392,47 @@
 
         .btn-details {
             background: linear-gradient(145deg, #2a9d8f, #1b6d63);
+        }
+
+        /* After-Click Ripple & Spinners */
+        .click-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: rippleBurst 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleBurst {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            animation: spinRotate 0.85s linear infinite;
+        }
+
+        @keyframes spinRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .task-completed-pop {
+            animation: successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.03); filter: brightness(1.1); }
+            100% { transform: scale(1); }
         }
 
         .modal {
@@ -360,17 +452,12 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.94);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             margin: 10px auto;
@@ -384,15 +471,8 @@
         }
 
         @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0.5;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(20px); opacity: 0.5; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-header {
@@ -419,7 +499,7 @@
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
@@ -434,11 +514,11 @@
         textarea,
         select {
             width: 100%;
-            padding: 16px 18px;
+            padding: 15px 18px;
             font-size: 15px;
-            border: 1px solid rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.06);
             border-radius: 30px;
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.7);
             font-family: 'Inter', sans-serif;
             color: #0b202e;
             outline: none;
@@ -461,6 +541,14 @@
             font-size: 16px;
             margin-top: 10px;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+        #uploadBtn {
+            background: linear-gradient(135deg, #6c4f8d, #4a2e68);
+            box-shadow: 0 6px 20px rgba(108, 79, 141, 0.35);
         }
 
         .preview-grid {
@@ -574,7 +662,7 @@
             border: 2px solid transparent;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.15s, border-color 0.15s;
+            transition: transform 0.15s;
         }
 
         .gallery-thumb:hover {
@@ -660,28 +748,32 @@
     <div class="header">
         <h2><i class="fas fa-map-pin" style="margin-right: 6px; color: #1f4a62;"></i>Field Register</h2>
         <div class="header-actions">
-
-            <div class="header-actions">
-                <button class="btn-icon" id="tourDiaryBtn" onclick="exportTourDiary()">
-                    <i class="fas fa-file-export" style="color: #2a7faa;"></i> Tour Diary
-                </button>
-                <button class="btn-icon" id="syncBtn" onclick="syncWithSheet()">
-                    <i class="fas fa-sync-alt"></i> Sync
-                </button>
-                <button class="btn-icon btn-primary" onclick="openModal('createModal')">
-                    <i class="fas fa-plus"></i> New
-                </button>
-            </div>
+            <button class="btn-icon" id="tourDiaryBtn" onclick="exportTourDiary()">
+                <i class="fas fa-file-export" style="color: #2a7faa;"></i> Tour Diary
+            </button>
+            <button class="btn-icon" id="syncBtn" onclick="syncWithSheet()">
+                <i class="fas fa-sync-alt"></i> Sync
+            </button>
+            <button class="btn-icon btn-primary" onclick="openModal('createModal')">
+                <i class="fas fa-plus"></i> New
+            </button>
         </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- 3 TABS: QUEUE | INSPECT | COMPLETE -->
     <div class="tab-container">
-        <button class="tab-btn active" id="tabActive" onclick="switchTab('active')">Active</button>
-        <button class="tab-btn" id="tabCompleted" onclick="switchTab('completed')">Completed</button>
+        <button class="tab-btn active" id="tabQueue" onclick="switchTab('queue')">
+            <i class="fas fa-inbox"></i> Queue <span class="tab-counter" id="countQueue">0</span>
+        </button>
+        <button class="tab-btn" id="tabInspect" onclick="switchTab('inspect')">
+            <i class="fas fa-walking"></i> Inspect <span class="tab-counter" id="countInspect">0</span>
+        </button>
+        <button class="tab-btn" id="tabCompleted" onclick="switchTab('completed')">
+            <i class="fas fa-check-double"></i> Complete <span class="tab-counter" id="countCompleted">0</span>
+        </button>
     </div>
 
-    <!-- Filters: Search + Ward Filter + Priority/Cluster Filter -->
+    <!-- Filters -->
     <div class="filter-container">
         <input type="text" id="searchInput" placeholder="Search name, file, place..." oninput="renderList()">
         <select id="wardFilter" onchange="renderList()">
@@ -726,7 +818,6 @@
                 <div class="detail-row"><strong>Timings:</strong> <span id="detailTimes"></span></div>
             </div>
 
-            <!-- Map View Container -->
             <div class="detail-section" id="detailMapSection">
                 <h4>Location & Navigation</h4>
                 <div class="map-wrapper">
@@ -737,7 +828,6 @@
                 </div>
             </div>
 
-            <!-- Photos & Documents -->
             <div class="detail-section" id="detailPhotosSection">
                 <h4>Site Photos</h4>
                 <div id="detailPhotosContainer" class="detail-gallery"></div>
@@ -753,7 +843,7 @@
         </div>
     </div>
 
-    <!-- FULLSCREEN ZOOMABLE IMAGE LIGHTBOX -->
+    <!-- LIGHTBOX MODAL -->
     <div id="lightboxModal" class="modal">
         <div class="lightbox-toolbar">
             <button class="lightbox-btn" onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
@@ -766,11 +856,11 @@
         </div>
     </div>
 
-    <!-- CREATE MODAL -->
+    <!-- CREATE MODAL (Desk Entry - No out time field) -->
     <div class="modal" id="createModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-pen-fancy" style="margin-right: 10px; color: #1f4a62;"></i>Pre‑Departure</h3>
+                <h3><i class="fas fa-pen-fancy" style="margin-right: 10px; color: #1f4a62;"></i>Pre‑Departure Task</h3>
                 <button class="close-btn" onclick="closeModal('createModal')">&times;</button>
             </div>
             <form id="createForm">
@@ -783,7 +873,6 @@
                 <div class="form-group"><label>House Name</label><input type="text" id="houseName" required
                         placeholder="House name"></div>
 
-                <!-- Purpose Dropdown -->
                 <div class="form-group">
                     <label>Purpose</label>
                     <select id="purposeSelect" required onchange="handleDropdownOther('purposeSelect', 'purposeOther')">
@@ -806,10 +895,8 @@
                 <div class="form-group"><label>Route</label><input type="text" id="route" required
                         placeholder="Travel route"></div>
 
-                <!-- Repurposed Office Remarks: Priority / Cluster Route -->
                 <div class="form-group">
-                    <label><i class="fas fa-layer-group" style="margin-right: 4px; color: #2a7faa;"></i>Work Priority /
-                        Route Cluster</label>
+                    <label><i class="fas fa-layer-group" style="margin-right: 4px; color: #2a7faa;"></i>Work Priority / Route Cluster</label>
                     <select id="clusterSelect" required onchange="handleDropdownOther('clusterSelect', 'clusterOther')">
                         <option value="" disabled selected>Assign Priority or Cluster</option>
                         <option value="⚡ Priority 1 (Urgent)">⚡ Priority 1 (Urgent)</option>
@@ -824,9 +911,7 @@
                         style="display:none; margin-top: 8px;">
                 </div>
 
-                <div class="form-group"><label>Leaving Time</label><input type="datetime-local" id="leavingTime"
-                        required></div>
-                <button type="submit" class="submit-btn" id="saveEntryBtn">Save Entry</button>
+                <button type="submit" class="submit-btn" id="saveEntryBtn">Queue Task</button>
             </form>
         </div>
     </div>
@@ -872,10 +957,8 @@
                 <div class="form-group"><label>Route</label><input type="text" id="editRoute" required
                         placeholder="Travel route"></div>
 
-                <!-- Edit Repurposed Office Remarks: Priority / Cluster Route -->
                 <div class="form-group">
-                    <label><i class="fas fa-layer-group" style="margin-right: 4px; color: #2a7faa;"></i>Work Priority /
-                        Route Cluster</label>
+                    <label><i class="fas fa-layer-group" style="margin-right: 4px; color: #2a7faa;"></i>Work Priority / Route Cluster</label>
                     <select id="editClusterSelect" required
                         onchange="handleDropdownOther('editClusterSelect', 'editClusterOther')">
                         <option value="" disabled selected>Assign Priority or Cluster</option>
@@ -891,8 +974,6 @@
                         style="display:none; margin-top: 8px;">
                 </div>
 
-                <div class="form-group"><label>Leaving Time</label><input type="datetime-local" id="editLeavingTime"
-                        required></div>
                 <button type="submit" class="submit-btn" id="editEntryBtn">Update Entry</button>
             </form>
         </div>
@@ -902,8 +983,7 @@
     <div class="modal" id="fieldModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-clipboard-check" style="margin-right: 10px; color: #6c4f8d;"></i>On‑Site Inspection
-                </h3>
+                <h3><i class="fas fa-clipboard-check" style="margin-right: 10px; color: #6c4f8d;"></i>On‑Site Inspection</h3>
                 <button class="close-btn" onclick="closeModal('fieldModal')">&times;</button>
             </div>
             <form id="fieldForm">
@@ -917,16 +997,13 @@
 
                 <!-- Manual Date & Clock Time Inputs -->
                 <div class="form-group">
-                    <label><i class="far fa-calendar-alt" style="margin-right: 4px; color: #2a7faa;"></i>Inspection
-                        Date</label>
+                    <label><i class="far fa-calendar-alt" style="margin-right: 4px; color: #2a7faa;"></i>Inspection Date</label>
                     <input type="date" id="fieldInspectionDate" required>
                 </div>
 
                 <div class="form-group">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label style="margin: 0;"><i class="far fa-clock"
-                                style="margin-right: 4px; color: #2a7faa;"></i>Inspection Time</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin: 0;"><i class="far fa-clock" style="margin-right: 4px; color: #2a7faa;"></i>Inspection Time</label>
                         <button type="button" onclick="setNowTime()"
                             style="background: none; border: none; color: #2a7faa; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">
                             Set Current Time
@@ -957,8 +1034,7 @@
                 <div class="form-group">
                     <label>Site Photos (Optional, Max 4)</label>
                     <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotoSelect(event)">
-                    <small style="font-size: 11px; color: #666; display: block; margin-top: 4px;">Select up to 4
-                        photos.</small>
+                    <small style="font-size: 11px; color: #666; display: block; margin-top: 4px;">Select up to 4 photos.</small>
                     <div id="photoPreviewContainer" class="preview-grid"></div>
                 </div>
 
@@ -967,7 +1043,9 @@
                     <input type="file" id="pdfFile" accept="application/pdf">
                 </div>
 
-                <button type="submit" class="submit-btn" id="uploadBtn">Upload &amp; Save</button>
+                <button type="submit" class="submit-btn" id="uploadBtn">
+                    <i class="fas fa-cloud-upload-alt" style="margin-right: 6px;"></i> Upload &amp; Save
+                </button>
             </form>
         </div>
     </div>
@@ -1001,7 +1079,7 @@
 
         let tasks = JSON.parse(localStorage.getItem('app_tasks')) || [];
         let selectedTaskId = null;
-        let currentTab = 'active';
+        let currentTab = 'queue'; // 'queue' | 'inspect' | 'completed'
         let selectedPhotos = [];
         let detailMapInstance = null;
         let currentMarker = null;
@@ -1021,7 +1099,25 @@
             } catch (e) { return dateStr; }
         }
 
-        // Dropdown Handlers
+        // Ripple Animation Helper
+        function triggerRipple(event, button) {
+            const rect = button.getBoundingClientRect();
+            const circle = document.createElement('span');
+            const diameter = Math.max(rect.width, rect.height);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add('click-ripple');
+
+            const existing = button.querySelector('.click-ripple');
+            if (existing) existing.remove();
+
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600);
+        }
+
         function handleDropdownOther(selectId, inputId) {
             const sel = document.getElementById(selectId);
             const input = document.getElementById(inputId);
@@ -1066,7 +1162,7 @@
 
         // Details Modal
         function openDetailModal(id) {
-            const task = tasks.find(x => String(x.id) === String(id));
+            const task = tasks.find(x => String(x.id).trim() === String(id).trim());
             if (!task) return;
 
             document.getElementById('detailFileNo').textContent = task.fileNumber || 'File Details';
@@ -1160,14 +1256,8 @@
             }
         }
 
-        // Zoomable Lightbox
-        let currentZoom = 1;
-        let isPanning = false;
-        let startX = 0, startY = 0;
-        let translateX = 0, translateY = 0;
-        let initialPinchDistance = 0;
-        let initialZoom = 1;
-
+        // Lightbox
+        let currentZoom = 1, isPanning = false, startX = 0, startY = 0, translateX = 0, translateY = 0, initialPinchDistance = 0, initialZoom = 1;
         const lightboxModal = document.getElementById('lightboxModal');
         const lightboxWrapper = document.getElementById('lightboxWrapper');
         const lightboxImg = document.getElementById('lightboxImg');
@@ -1177,39 +1267,27 @@
             resetZoom();
             lightboxModal.style.display = 'flex';
         }
-
         function closeLightbox() {
             lightboxModal.style.display = 'none';
             resetZoom();
         }
-
         function applyTransform() {
             lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
         }
-
         function zoomIn() {
             currentZoom = Math.min(currentZoom + 0.4, 5);
             applyTransform();
         }
-
         function zoomOut() {
             currentZoom = Math.max(currentZoom - 0.4, 1);
-            if (currentZoom === 1) {
-                translateX = 0;
-                translateY = 0;
-            }
+            if (currentZoom === 1) { translateX = 0; translateY = 0; }
             applyTransform();
         }
-
         function resetZoom() {
-            currentZoom = 1;
-            translateX = 0;
-            translateY = 0;
-            applyTransform();
+            currentZoom = 1; translateX = 0; translateY = 0; applyTransform();
         }
 
         lightboxImg.addEventListener('dragstart', (e) => e.preventDefault());
-
         lightboxWrapper.addEventListener('mousedown', (e) => {
             if (currentZoom <= 1) return;
             e.preventDefault();
@@ -1218,7 +1296,6 @@
             startX = e.clientX - translateX;
             startY = e.clientY - translateY;
         });
-
         window.addEventListener('mousemove', (e) => {
             if (!isPanning) return;
             e.preventDefault();
@@ -1226,24 +1303,18 @@
             translateY = e.clientY - startY;
             applyTransform();
         });
-
         window.addEventListener('mouseup', () => {
             isPanning = false;
             lightboxImg.classList.remove('panning');
         });
-
         lightboxWrapper.addEventListener('wheel', (e) => {
             e.preventDefault();
-            if (e.deltaY < 0) zoomIn();
-            else zoomOut();
+            if (e.deltaY < 0) zoomIn(); else zoomOut();
         }, { passive: false });
 
         function getTouchDistance(touches) {
-            const dx = touches[0].clientX - touches[1].clientX;
-            const dy = touches[0].clientY - touches[1].clientY;
-            return Math.hypot(dx, dy);
+            return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
         }
-
         lightboxWrapper.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1 && currentZoom > 1) {
                 isPanning = true;
@@ -1255,7 +1326,6 @@
                 initialZoom = currentZoom;
             }
         }, { passive: false });
-
         lightboxWrapper.addEventListener('touchmove', (e) => {
             if (e.touches.length === 1 && isPanning && currentZoom > 1) {
                 e.preventDefault();
@@ -1264,26 +1334,20 @@
                 applyTransform();
             } else if (e.touches.length === 2 && initialPinchDistance > 0) {
                 e.preventDefault();
-                const dist = getTouchDistance(e.touches);
-                const factor = dist / initialPinchDistance;
+                const factor = getTouchDistance(e.touches) / initialPinchDistance;
                 currentZoom = Math.min(Math.max(initialZoom * factor, 1), 5);
                 applyTransform();
             }
         }, { passive: false });
-
         lightboxWrapper.addEventListener('touchend', (e) => {
             if (e.touches.length < 2) initialPinchDistance = 0;
             if (e.touches.length === 0) {
                 isPanning = false;
-                if (currentZoom <= 1) {
-                    translateX = 0;
-                    translateY = 0;
-                    applyTransform();
-                }
+                if (currentZoom <= 1) { translateX = 0; translateY = 0; applyTransform(); }
             }
         });
 
-        // Sync with Google Sheet
+        // Sync with Google Sheet (Safe 21 Column Reading)
         async function syncWithSheet() {
             const syncBtn = document.getElementById('syncBtn');
             syncBtn.disabled = true;
@@ -1305,7 +1369,6 @@
                     return;
                 }
 
-                // Full 21-column mapping
                 tasks = sheetData
                     .filter(row => row && row.length >= 10 && String(row[0] || '').trim() !== "")
                     .map(row => ({
@@ -1327,7 +1390,7 @@
                         pdfUrl: String(row[16] || '').trim(),
                         returnTime: String(row[17] || '').trim(),
                         duration: String(row[18] || '').trim(),
-                        status: String(row[19] || "Pending Field Visit").trim(),
+                        status: String(row[19] || "Prepared / At Office").trim(),
                         mobile: String(row[20] || '').trim()
                     }));
 
@@ -1344,12 +1407,12 @@
             }
         }
 
+        // Create Entry (Queue at Office)
         document.getElementById('createForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('saveEntryBtn');
-            btn.disabled = true; btn.innerText = 'Saving...';
+            btn.disabled = true; btn.innerText = 'Queueing...';
 
-            // Pre-generate guaranteed unique ID so task.id is never null or undefined
             const uniqueId = "ID-" + Date.now();
 
             const task = {
@@ -1365,18 +1428,16 @@
                 route: document.getElementById('route').value,
                 remarks: getDropdownValue('clusterSelect', 'clusterOther'),
                 eligibility: "Pending Verification",
-                leavingTime: document.getElementById('leavingTime').value,
-                status: "Pending Field Visit"
+                leavingTime: "",
+                status: "Prepared / At Office"
             };
 
             try {
                 const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(task) });
                 const data = await res.json();
-                if (data && data.id) {
-                    task.id = String(data.id);
-                }
+                if (data && data.id) task.id = String(data.id);
             } catch (e) {
-                console.warn("Offline create, stored with ID:", uniqueId);
+                console.warn("Stored offline with ID:", uniqueId);
             }
 
             tasks.push(task);
@@ -1388,12 +1449,12 @@
             handleDropdownOther('purposeSelect', 'purposeOther');
             handleDropdownOther('clusterSelect', 'clusterOther');
             btn.disabled = false;
-            btn.innerText = 'Save Entry';
+            btn.innerText = 'Queue Task';
         });
 
         // Edit Entry
         function openEditForm(id) {
-            const task = tasks.find(x => String(x.id) === String(id));
+            const task = tasks.find(x => String(x.id).trim() === String(id).trim());
             if (!task) return;
             document.getElementById('editId').value = task.id;
             document.getElementById('editFileNumber').value = task.fileNumber || '';
@@ -1405,15 +1466,6 @@
             document.getElementById('editPlace').value = task.place || '';
             document.getElementById('editRoute').value = task.route || '';
             setDropdownValue('editClusterSelect', 'editClusterOther', STANDARD_CLUSTERS, task.remarks || '');
-
-            if (task.leavingTime) {
-                try {
-                    const d = new Date(task.leavingTime);
-                    if (!isNaN(d.getTime())) {
-                        document.getElementById('editLeavingTime').value = d.toISOString().slice(0, 16);
-                    }
-                } catch (e) { document.getElementById('editLeavingTime').value = ''; }
-            }
             openModal('editModal');
         }
 
@@ -1422,7 +1474,7 @@
             const btn = document.getElementById('editEntryBtn');
             btn.disabled = true; btn.innerText = 'Updating...';
             const id = document.getElementById('editId').value;
-            const taskIndex = tasks.findIndex(x => String(x.id) === String(id));
+            const taskIndex = tasks.findIndex(x => String(x.id).trim() === String(id).trim());
             if (taskIndex === -1) { alert('Task not found'); btn.disabled = false; btn.innerText = 'Update Entry'; return; }
 
             const updatedTask = {
@@ -1435,8 +1487,7 @@
                 ward: document.getElementById('editWard').value,
                 place: document.getElementById('editPlace').value,
                 route: document.getElementById('editRoute').value,
-                remarks: getDropdownValue('editClusterSelect', 'editClusterOther'),
-                leavingTime: document.getElementById('editLeavingTime').value,
+                remarks: getDropdownValue('editClusterSelect', 'editClusterOther')
             };
 
             const payload = { action: "update", id: id, ...updatedTask };
@@ -1451,7 +1502,7 @@
             finally { btn.disabled = false; btn.innerText = 'Update Entry'; }
         });
 
-        // Photo Upload Handling
+        // Photo Handling
         function handlePhotoSelect(event) {
             const files = Array.from(event.target.files);
             if (selectedPhotos.length + files.length > 4) {
@@ -1485,22 +1536,19 @@
                 container.appendChild(card);
             });
         }
-        // Quick helper to fill current time if desired
+
         function setNowTime() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
             document.getElementById('fieldInspectionDate').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
             document.getElementById('fieldInspectionTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
         }
-        // Pre-fill inputs when opening Field Inspection modal
+
         function openFieldForm(id) {
-            selectedTaskId = String(id);
-            const task = tasks.find(x => String(x.id) === selectedTaskId);
+            selectedTaskId = String(id).trim();
+            const task = tasks.find(x => String(x.id).trim() === selectedTaskId);
             setDropdownValue('fieldEligibilitySelect', 'fieldEligibilityOther', STANDARD_ELIGIBILITIES, task ? task.eligibility : '');
-
-            // Set today's date and current time by default so you can adjust with the clock
             setNowTime();
-
             selectedPhotos = [];
             renderPhotoPreviews();
             openModal('fieldModal');
@@ -1548,33 +1596,35 @@
             return data.secure_url;
         }
 
-        // In fieldForm submit listener:
+        // Save On-Site Inspection (With Animated State)
         document.getElementById('fieldForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            if (!selectedTaskId || String(selectedTaskId).trim() === "null" || String(selectedTaskId).trim() === "undefined") {
-                alert("Error: No valid task ID selected.");
-                return;
+            if (!selectedTaskId || selectedTaskId === "null") {
+                alert("Invalid Task ID."); return;
             }
 
             const pdf = document.getElementById('pdfFile').files[0] || null;
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true;
+            const originalText = '<i class="fas fa-cloud-upload-alt" style="margin-right: 6px;"></i> Upload &amp; Save';
 
             try {
                 let photoUrls = [];
                 for (let i = 0; i < selectedPhotos.length; i++) {
-                    btn.innerText = `Compressing ${i + 1}/${selectedPhotos.length}...`;
+                    btn.innerHTML = `<i class="fas fa-circle-notch btn-spinner"></i> Compressing ${i + 1}/${selectedPhotos.length}...`;
                     const compressed = await compressImage(selectedPhotos[i]);
-                    btn.innerText = `Uploading photo ${i + 1}/${selectedPhotos.length}...`;
+                    btn.innerHTML = `<i class="fas fa-cloud-upload-alt btn-spinner"></i> Uploading ${i + 1}/${selectedPhotos.length}...`;
                     let url = await uploadToCloudinary(compressed);
                     photoUrls.push(url);
                 }
 
                 let pdfUrl = "";
                 if (pdf) {
-                    btn.innerText = "Uploading PDF...";
+                    btn.innerHTML = `<i class="fas fa-file-pdf btn-spinner"></i> Uploading PDF...`;
                     pdfUrl = await uploadToCloudinary(pdf);
                 }
+
+                btn.innerHTML = `<i class="fas fa-save btn-spinner"></i> Saving to Sheet...`;
 
                 const manualDate = document.getElementById('fieldInspectionDate').value;
                 const manualTime = document.getElementById('fieldInspectionTime').value;
@@ -1582,7 +1632,7 @@
 
                 const fieldData = {
                     action: "updateField",
-                    id: String(selectedTaskId).trim(),
+                    id: selectedTaskId,
                     eligibility: getDropdownValue('fieldEligibilitySelect', 'fieldEligibilityOther'),
                     siteTime: combinedSiteTime,
                     siteLocation: document.getElementById('gpsDisplay').value,
@@ -1593,60 +1643,124 @@
 
                 const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(fieldData) });
                 const result = await res.json();
-                if (result.status !== "success") {
-                    throw new Error(result.message || "Failed to update field inspection");
-                }
+                if (result.status !== "success") throw new Error(result.message);
 
-                let t = tasks.find(x => String(x.id).trim() === String(selectedTaskId).trim());
-                if (t) {
-                    Object.assign(t, fieldData, { status: "On Field / In Progress" });
-                }
-                localStorage.setItem('app_tasks', JSON.stringify(tasks));
-                alert("✅ Field data saved!");
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                btn.style.background = '#2a9d8f';
 
-                selectedPhotos = [];
-                renderPhotoPreviews();
-                closeModal('fieldModal');
-                this.reset();
-                handleDropdownOther('fieldEligibilitySelect', 'fieldEligibilityOther');
-                updateFilterDropdowns();
-                renderList();
+                setTimeout(() => {
+                    let t = tasks.find(x => String(x.id).trim() === selectedTaskId);
+                    if (t) Object.assign(t, fieldData, { status: "On Field / In Progress" });
+                    localStorage.setItem('app_tasks', JSON.stringify(tasks));
+
+                    selectedPhotos = [];
+                    renderPhotoPreviews();
+                    closeModal('fieldModal');
+                    this.reset();
+                    handleDropdownOther('fieldEligibilitySelect', 'fieldEligibilityOther');
+                    updateFilterDropdowns(); 
+                    renderList();
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.style.background = '';
+                }, 450);
+
             } catch (err) {
                 alert("Upload error: " + err.message);
-            } finally {
-                btn.innerText = "Upload & Save";
+                btn.innerHTML = originalText;
                 btn.disabled = false;
+                btn.style.background = '';
             }
         });
 
-        // Complete Task
-        // Complete Task (Reliable with Error Verification)
-        // Complete Task with hh:mm duration format
-        async function completeTask(id) {
-            if (!id || String(id).trim() === "null" || String(id).trim() === "undefined") {
-                alert("Error: Invalid Task ID.");
+        // 1. PUNCH OUT / START JOURNEY (With Click & Ripple Animation)
+        async function departTask(id, event) {
+            if (event) {
+                event.stopPropagation();
+                triggerRipple(event, event.currentTarget);
+            }
+
+            const btn = event ? event.currentTarget : null;
+            let originalHtml = '';
+            if (btn) {
+                btn.disabled = true;
+                originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-circle-notch btn-spinner"></i> Departing...';
+                btn.style.filter = 'brightness(0.9)';
+            }
+
+            if (!id || String(id).trim() === "null") {
+                alert("Invalid Task ID.");
+                if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
                 return;
             }
 
             let t = tasks.find(x => String(x.id).trim() === String(id).trim());
-            if (!t) {
-                alert("Task not found locally.");
+            if (!t) return;
+
+            const now = new Date();
+            const payload = {
+                action: "depart",
+                id: String(id).trim(),
+                leavingTime: now.toISOString()
+            };
+
+            try {
+                const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.status !== "success") throw new Error(result.message);
+
+                if (btn) btn.innerHTML = '<i class="fas fa-check"></i> Out!';
+
+                setTimeout(() => {
+                    t.leavingTime = now.toISOString();
+                    t.status = "Pending Field Visit";
+                    localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                    updateFilterDropdowns();
+                    renderList();
+                }, 350);
+
+            } catch (err) {
+                alert("Could not record departure: " + err.message);
+                if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; btn.style.filter = 'none'; }
+            }
+        }
+
+        // 2. COMPLETE TASK (With Click, Duration, and Success Animation)
+        async function completeTask(id, event) {
+            if (event) {
+                event.stopPropagation();
+                triggerRipple(event, event.currentTarget);
+            }
+
+            const btn = event ? event.currentTarget : null;
+            let originalHtml = '';
+            if (btn) {
+                btn.disabled = true;
+                originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-circle-notch btn-spinner"></i> Completing...';
+                btn.style.filter = 'brightness(0.9)';
+            }
+
+            if (!id || String(id).trim() === "null") {
+                alert("Invalid Task ID.");
+                if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
                 return;
             }
 
+            let t = tasks.find(x => String(x.id).trim() === String(id).trim());
+            if (!t) return;
+
             let departureTime;
             if (t.leavingTime) {
-                let cleanLeaving = String(t.leavingTime).replace(' ', 'T');
-                departureTime = new Date(cleanLeaving);
+                departureTime = new Date(String(t.leavingTime).replace(' ', 'T'));
             }
 
             const returnTime = new Date();
             let durationFormatted = "00:00";
 
             if (departureTime && !isNaN(departureTime.getTime())) {
-                let diffMs = returnTime.getTime() - departureTime.getTime();
-                if (diffMs < 0) diffMs = 0;
-
+                let diffMs = Math.max(0, returnTime.getTime() - departureTime.getTime());
                 let totalMins = Math.floor(diffMs / 60000);
                 let hours = Math.floor(totalMins / 60);
                 let mins = totalMins % 60;
@@ -1661,52 +1775,68 @@
             };
 
             try {
-                const res = await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-
+                const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const result = await res.json();
+                if (result.status !== "success") throw new Error(result.message);
 
-                if (result.status !== "success") {
-                    throw new Error(result.message || "Failed to update row in Google Sheet");
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-check-double"></i> Finished!';
+                    btn.style.background = '#2a9d8f';
+                    const card = btn.closest('.visit-card');
+                    if (card) card.classList.add('task-completed-pop');
                 }
 
-                t.status = "Completed";
-                t.returnTime = payload.returnTime;
-                t.duration = payload.duration;
-                localStorage.setItem('app_tasks', JSON.stringify(tasks));
-
-                updateFilterDropdowns();
-                renderList();
-                alert(`✅ Marked complete! Duration: ${durationFormatted}`);
+                setTimeout(() => {
+                    t.status = "Completed";
+                    t.returnTime = payload.returnTime;
+                    t.duration = payload.duration;
+                    localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                    updateFilterDropdowns();
+                    renderList();
+                }, 500);
 
             } catch (err) {
-                console.error("Complete Task Error:", err);
-                alert("⚠️ Could not complete task: " + err.message);
+                alert("Could not complete task: " + err.message);
+                if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; btn.style.filter = 'none'; }
             }
         }
 
-        // Tabs & Filtering
+        // 3-Tab Switching
         function switchTab(tab) {
             currentTab = tab;
-            document.getElementById('tabActive').classList.toggle('active', tab === 'active');
+            document.getElementById('tabQueue').classList.toggle('active', tab === 'queue');
+            document.getElementById('tabInspect').classList.toggle('active', tab === 'inspect');
             document.getElementById('tabCompleted').classList.toggle('active', tab === 'completed');
             document.getElementById('searchInput').value = '';
-            updateFilterDropdowns(); renderList();
+            updateFilterDropdowns();
+            renderList();
+        }
+
+        function updateTabBadges() {
+            const queueCount = tasks.filter(t => t.status === 'Prepared / At Office').length;
+            const inspectCount = tasks.filter(t => t.status === 'Pending Field Visit' || t.status === 'On Field / In Progress').length;
+            const completedCount = tasks.filter(t => t.status === 'Completed').length;
+
+            document.getElementById('countQueue').textContent = queueCount;
+            document.getElementById('countInspect').textContent = inspectCount;
+            document.getElementById('countCompleted').textContent = completedCount;
         }
 
         function renderList() {
+            updateTabBadges();
             const container = document.getElementById('visitList');
             container.innerHTML = '';
             const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
             const ward = document.getElementById('wardFilter')?.value || 'ALL';
             const cluster = document.getElementById('clusterFilter')?.value || 'ALL';
 
+            // Filter by Active Tab
             let filtered = tasks.filter(t => {
+                if (currentTab === 'queue') return t.status === 'Prepared / At Office';
+                if (currentTab === 'inspect') return t.status === 'Pending Field Visit' || t.status === 'On Field / In Progress';
                 if (currentTab === 'completed') return t.status === 'Completed';
-                return t.status !== 'Completed';
+                return true;
             });
 
             if (ward !== 'ALL') {
@@ -1725,11 +1855,11 @@
             }
 
             if (!filtered.length) {
-                container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox" style="font-size:24px; opacity:0.5; display:block; margin-bottom:8px;"></i>No visits found</div>`;
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox" style="font-size:24px; opacity:0.5; display:block; margin-bottom:8px;"></i>No visits in this section</div>`;
                 return;
             }
 
-            // Grouping: Sort by cluster/priority first so nearest destinations stay grouped together
+            // Sort by priority/cluster
             filtered.sort((a, b) => {
                 const remA = a.remarks || 'ZZZ';
                 const remB = b.remarks || 'ZZZ';
@@ -1737,7 +1867,8 @@
             });
 
             filtered.forEach(t => {
-                let cardClass = 'pending', badgeClass = 'badge-pending';
+                let cardClass = 'queue', badgeClass = 'badge-queue';
+                if (t.status === 'Pending Field Visit') { cardClass = 'pending'; badgeClass = 'badge-pending'; }
                 if (t.status === 'On Field / In Progress') { cardClass = 'progress'; badgeClass = 'badge-progress'; }
                 if (t.status === 'Completed') { cardClass = 'completed clickable'; badgeClass = 'badge-completed'; }
 
@@ -1753,6 +1884,9 @@
                 }
 
                 const isCompleted = t.status === 'Completed';
+                const isQueue = t.status === 'Prepared / At Office';
+                const isPending = t.status === 'Pending Field Visit';
+                const isInProgress = t.status === 'On Field / In Progress';
                 const cardOnClick = isCompleted ? `onclick="openDetailModal('${t.id}')"` : '';
 
                 let clusterBadge = '';
@@ -1776,13 +1910,14 @@
         <div class="card-row"><strong>Mobile:</strong> ${t.mobile || 'N/A'} ${phoneMarkup}</div>
         <div class="card-row"><strong>Location:</strong> Ward ${t.ward || ''}, ${t.place || ''}</div>
         <div class="card-row"><strong>Route:</strong> ${t.route || 'Not specified'}</div>
-        <div class="card-row"><strong>Eligibility:</strong> ${t.eligibility || 'Pending'}</div>
+        <div class="card-row"><strong>Leaving:</strong> ${t.leavingTime ? formatDateNice(t.leavingTime) : 'At Office (Not departed)'}</div>
         ${t.duration ? `<div class="card-row"><strong>Duration:</strong> ${t.duration}</div>` : ''}
         
         <div class="card-actions" onclick="event.stopPropagation()">
             ${!isCompleted ? `<button class="btn-action btn-edit" onclick="openEditForm('${t.id}')"><i class="fas fa-pencil-alt"></i> Edit</button>` : ''}
-            ${t.status === 'Pending Field Visit' ? `<button class="btn-action btn-inspect" onclick="openFieldForm('${t.id}')"><i class="fas fa-search-location"></i> Inspect</button>` : ''}
-            ${t.status === 'On Field / In Progress' ? `<button class="btn-action btn-complete" onclick="completeTask('${t.id}')"><i class="fas fa-check-circle"></i> Complete</button>` : ''}
+            ${isQueue ? `<button class="btn-action btn-depart" onclick="departTask('${t.id}', event)"><i class="fas fa-walking"></i> Start Journey</button>` : ''}
+            ${isPending ? `<button class="btn-action btn-inspect" onclick="openFieldForm('${t.id}')"><i class="fas fa-search-location"></i> Inspect</button>` : ''}
+            ${isInProgress ? `<button class="btn-action btn-complete" onclick="completeTask('${t.id}', event)"><i class="fas fa-check-circle"></i> Complete</button>` : ''}
             ${isCompleted ? `<button class="btn-action btn-details" onclick="openDetailModal('${t.id}')"><i class="fas fa-eye"></i> View Details</button>` : ''}
         </div>
     </div>`;
@@ -1795,33 +1930,32 @@
             const currentWard = wardSel.value;
             const currentCluster = clusterSel.value;
 
-            const activeTasks = tasks.filter(t => {
+            let tabTasks = tasks.filter(t => {
+                if (currentTab === 'queue') return t.status === 'Prepared / At Office';
+                if (currentTab === 'inspect') return t.status === 'Pending Field Visit' || t.status === 'On Field / In Progress';
                 if (currentTab === 'completed') return t.status === 'Completed';
-                return t.status !== 'Completed';
+                return true;
             });
 
-            // Populate Wards
-            const wards = [...new Set(activeTasks.map(t => String(t.ward).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const wards = [...new Set(tabTasks.map(t => String(t.ward).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
             wardSel.innerHTML = '<option value="ALL">All Wards</option>';
             wards.forEach(w => {
                 const opt = document.createElement('option');
                 opt.value = w; opt.textContent = `Ward ${w}`;
                 wardSel.appendChild(opt);
             });
-            if (wards.includes(currentWard)) wardSel.value = currentWard;
-            else wardSel.value = 'ALL';
+            if (wards.includes(currentWard)) wardSel.value = currentWard; else wardSel.value = 'ALL';
 
-            // Populate Clusters / Priorities
-            const clusters = [...new Set(activeTasks.map(t => String(t.remarks).trim()).filter(Boolean))].sort();
+            const clusters = [...new Set(tabTasks.map(t => String(t.remarks).trim()).filter(Boolean))].sort();
             clusterSel.innerHTML = '<option value="ALL">All Clusters / Priority</option>';
             clusters.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c; opt.textContent = c;
                 clusterSel.appendChild(opt);
             });
-            if (clusters.includes(currentCluster)) clusterSel.value = currentCluster;
-            else clusterSel.value = 'ALL';
+            if (clusters.includes(currentCluster)) clusterSel.value = currentCluster; else clusterSel.value = 'ALL';
         }
+
         async function exportTourDiary() {
             const btn = document.getElementById('tourDiaryBtn');
             const originalText = btn.innerHTML;
