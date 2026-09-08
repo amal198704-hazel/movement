@@ -405,14 +405,8 @@
         }
 
         @keyframes rippleBurst {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(4);
-                opacity: 0;
-            }
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
         }
 
         .btn-spinner {
@@ -916,7 +910,7 @@
         </div>
     </div>
 
-    <!-- EDIT MODAL -->
+    <!-- EDIT MODAL (With Departure / Out-Journey Time Editor) -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -972,6 +966,21 @@
                     </select>
                     <input type="text" id="editClusterOther" placeholder="e.g. Near River Bridge / Cluster 5"
                         style="display:none; margin-top: 8px;">
+                </div>
+
+                <!-- Out Journey / Leaving Time Editor -->
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin: 0;"><i class="fas fa-walking" style="margin-right: 4px; color: #16a085;"></i>Departure / Out Time</label>
+                        <button type="button" onclick="clearEditLeavingTime()" style="background: none; border: none; color: #e74c3c; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                            Clear (Return to Queue)
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="date" id="editDepartDate" style="flex: 1;">
+                        <input type="time" id="editDepartTime" step="1" style="flex: 1;">
+                    </div>
+                    <small style="color: #666; font-size: 11px; margin-top: 4px; display: block;">Leave empty if task is still waiting at the office.</small>
                 </div>
 
                 <button type="submit" class="submit-btn" id="editEntryBtn">Update Entry</button>
@@ -1485,7 +1494,7 @@
             btn.innerText = 'Queue Task';
         });
 
-        // Edit Entry
+        // Edit Entry (With Out-Journey Leaving Time Editor)
         function openEditForm(id) {
             const task = tasks.find(x => String(x.id).trim() === String(id).trim());
             if (!task) return;
@@ -1499,9 +1508,32 @@
             document.getElementById('editPlace').value = task.place || '';
             document.getElementById('editRoute').value = task.route || '';
             setDropdownValue('editClusterSelect', 'editClusterOther', STANDARD_CLUSTERS, task.remarks || '');
+
+            // Populate Out-Time in Edit Modal
+            if (task.leavingTime && task.leavingTime.trim() !== '') {
+                const pad = (n) => String(n).padStart(2, '0');
+                const d = new Date(String(task.leavingTime).replace(' ', 'T'));
+                if (!isNaN(d.getTime())) {
+                    document.getElementById('editDepartDate').value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+                    document.getElementById('editDepartTime').value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                } else {
+                    document.getElementById('editDepartDate').value = '';
+                    document.getElementById('editDepartTime').value = '';
+                }
+            } else {
+                document.getElementById('editDepartDate').value = '';
+                document.getElementById('editDepartTime').value = '';
+            }
+
             openModal('editModal');
         }
 
+        function clearEditLeavingTime() {
+            document.getElementById('editDepartDate').value = '';
+            document.getElementById('editDepartTime').value = '';
+        }
+
+        // Fixed Edit Form Submission (Prevents Duplicate Bug)
         document.getElementById('editForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('editEntryBtn');
@@ -1509,6 +1541,24 @@
             const id = document.getElementById('editId').value;
             const taskIndex = tasks.findIndex(x => String(x.id).trim() === String(id).trim());
             if (taskIndex === -1) { alert('Task not found'); btn.disabled = false; btn.innerText = 'Update Entry'; return; }
+
+            // Extract manual out-time if provided
+            const editDDate = document.getElementById('editDepartDate').value;
+            const editDTime = document.getElementById('editDepartTime').value;
+            let updatedLeavingTime = '';
+            if (editDDate && editDTime) {
+                updatedLeavingTime = `${editDDate} ${editDTime}`;
+            }
+
+            // Adjust status if leaving time was added or removed
+            let newStatus = tasks[taskIndex].status;
+            if (newStatus !== 'Completed') {
+                if (updatedLeavingTime) {
+                    if (newStatus === 'Prepared / At Office') newStatus = 'Pending Field Visit';
+                } else {
+                    newStatus = 'Prepared / At Office';
+                }
+            }
 
             const updatedTask = {
                 ...tasks[taskIndex],
@@ -1520,19 +1570,35 @@
                 ward: document.getElementById('editWard').value,
                 place: document.getElementById('editPlace').value,
                 route: document.getElementById('editRoute').value,
-                remarks: getDropdownValue('editClusterSelect', 'editClusterOther')
+                remarks: getDropdownValue('editClusterSelect', 'editClusterOther'),
+                leavingTime: updatedLeavingTime,
+                status: newStatus
             };
 
-            const payload = { action: "update", id: id, ...updatedTask };
+            // Critical: action "update" comes AFTER ...updatedTask so it is NEVER overwritten with "create"
+            const payload = {
+                ...updatedTask,
+                action: "update",
+                id: id
+            };
+
             try {
-                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.status !== "success") throw new Error(result.message || "Failed to update entry");
+
                 tasks[taskIndex] = updatedTask;
                 localStorage.setItem('app_tasks', JSON.stringify(tasks));
-                updateFilterDropdowns(); renderList();
+                updateFilterDropdowns(); 
+                renderList();
                 closeModal('editModal');
-                alert("✅ Visit updated!");
-            } catch (e) { alert("Update failed. Check connection."); }
-            finally { btn.disabled = false; btn.innerText = 'Update Entry'; }
+                alert("✅ Visit updated successfully!");
+            } catch (err) {
+                alert("Update failed: " + err.message);
+            } finally {
+                btn.disabled = false; 
+                btn.innerText = 'Update Entry';
+            }
         });
 
         // Photo Handling
